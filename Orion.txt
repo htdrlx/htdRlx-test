@@ -1,0 +1,180 @@
+-- [[ SCRIPT PVP ]] --
+
+-- Gọi thư viện Orion UI
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+
+-- Tạo Cửa sổ chính với tên của ông (htd)
+local Window = OrionLib:MakeWindow({
+    Name = "_htd.rlx_", 
+    HidePremium = false, 
+    SaveConfig = true, 
+    ConfigFolder = "-htd_pvp-"
+})
+
+-- Các biến toàn cục quản lý trạng thái bật/tắt tính năng
+_G.AutoAim = false
+_G.AutoFly = false
+_G.AutoM1 = false
+
+-- [[ CÁC HÀM XỬ LÝ LOGIC CHÍNH (CORE FUNCTIONS) ]] --
+
+-- 1. Hàm tìm người chơi gần nhất để "dí"
+local function getClosestPlayer()
+    local closestPlayer = nil
+    local shortestDistance = math.huge
+    local localPlayer = game.Players.LocalPlayer
+
+    if not localPlayer.Character or not localPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        return nil
+    end
+
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+            local distance = (localPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+            if distance < shortestDistance then
+                closestPlayer = player
+                shortestDistance = distance
+            end
+        end
+    end
+    return closestPlayer
+end
+
+-- 2. Vòng lặp Auto Aim: Khóa cứng Camera vào mục tiêu khi bật
+game:GetService("RunService").RenderStepped:Connect(function()
+    if _G.AutoAim then
+        local target = getClosestPlayer()
+        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+            local cam = workspace.CurrentCamera
+            cam.CFrame = CFrame.new(cam.CFrame.Position, target.Character.HumanoidRootPart.Position)
+        end
+    end
+end)
+
+-- 3. Vòng lặp Auto Fly / Teleport: Giữ khoảng cách ra sau lưng đối thủ và bật NoClip
+task.spawn(function()
+    while task.wait() do
+        if _G.AutoFly then
+            local target = getClosestPlayer()
+            local myChar = game.Players.LocalPlayer.Character
+            if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") and myChar and myChar:FindFirstChild("HumanoidRootPart") then
+                -- Dịch chuyển ra sau lưng đối thủ một khoảng cách nhỏ để đấm/xài skill
+                myChar.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
+                
+                -- Xử lý NoClip (Tắt va chạm) để tránh bị kẹt địa hình hoặc nảy người chơi
+                for _, part in pairs(myChar:GetChildren()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end
+    end
+end)
+
+-- 4. Vòng lặp Auto M1 và Tự động đổi vũ khí (Ưu tiên Trái ác quỷ -> Võ)
+task.spawn(function()
+    local vu = game:GetService("VirtualUser")
+    
+    while task.wait(0.1) do -- Giãn cách click chuột (0.1 giây là mượt)
+        if _G.AutoM1 then
+            local localPlayer = game.Players.LocalPlayer
+            local bp = localPlayer:FindFirstChild("Backpack")
+            local char = localPlayer.Character
+            
+            if bp and char and char:FindFirstChild("Humanoid") then
+                local targetTool = nil
+                
+                -- Tìm xem trong người đã cầm sẵn vũ khí chưa
+                local holdingTool = char:FindFirstChildOfClass("Tool")
+                
+                -- Nếu chưa cầm vũ khí thích hợp, tiến hành tìm trong Backpack
+                if not holdingTool then
+                    -- BƯỚC 1: Tìm Fruit (Trái ác quỷ)
+                    for _, tool in pairs(bp:GetChildren()) do
+                        if tool:IsA("Tool") and (string.find(string.lower(tool.Name), "fruit") or tool:FindFirstChild("FruitLevel")) then
+                            targetTool = tool
+                            break
+                        end
+                    end
+                    
+                    -- BƯỚC 2: Nếu không thấy Fruit, tìm Melee / Combat (Võ)
+                    if not targetTool then
+                        for _, tool in pairs(bp:GetChildren()) do
+                            if tool:IsA("Tool") and (string.find(string.lower(tool.Name), "combat") or string.find(string.lower(tool.Name), "style") or string.find(string.lower(tool.Name), "melee")) then
+                                targetTool = tool
+                                break
+                            end
+                        end
+                    end
+                    
+                    -- Nếu tìm thấy thì tự động lôi ra cầm
+                    if targetTool then
+                        char.Humanoid:EquipTool(targetTool)
+                    end
+                end
+                
+                -- Mô phỏng hành động click chuột trái (M1)
+                vu:CaptureController()
+                vu:ClickButton1(Vector2.new())
+            end
+        end
+    end
+end)
+
+
+-- [[ THIẾT LẬP GIAO DIỆN SCRIPT (UI SECTIONS) ]] --
+
+-- Tạo Tab Combat
+local CombatTab = Window:MakeTab({
+    Name = "Combat & PvP",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+-- Các thành phần nút gạt (Toggle) trong Tab Combat
+CombatTab:MakeToggle({
+    Name = "Auto Aim (Skill & Gun)",
+    Default = false,
+    Callback = function(Value)
+        _G.AutoAim = Value
+    end    
+})
+
+CombatTab:MakeToggle({
+    Name = "Auto Fly To Target",
+    Default = false,
+    Callback = function(Value)
+        _G.AutoFly = Value
+    end    
+})
+
+CombatTab:MakeToggle({
+    Name = "Auto M1 (Fruit -> Melee)",
+    Default = false,
+    Callback = function(Value)
+        _G.AutoM1 = Value
+    end    
+})
+
+-- Tạo Tab Misc (Tiện ích phụ) để ông thêm tính năng sau này
+local MiscTab = Window:MakeTab({
+    Name = "Misc",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+MiscTab:MakeButton({
+    Name = "Xóa hiệu ứng / Giảm Lag (Chờ viết code)",
+    Callback = function()
+        OrionLib:MakeNotification({
+            Name = "Thông báo",
+            Content = "Tính năng giảm lag đang được tối ưu hóa!",
+            Image = "rbxassetid://4483345998",
+            Time = 5
+        })
+    end
+})
+
+-- Khởi chạy toàn bộ cấu trúc UI
+OrionLib:Init()
