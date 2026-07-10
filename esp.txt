@@ -1,0 +1,18 @@
+-- Đoạn logic minh họa cách AI/Script quét và lấy tên chính xác của Trái Ác Quỷ trên Map
+local Workspace = game:GetService("Workspace")
+
+-- Hàm này sẽ chạy khi có một item mới rơi hoặc spam ra map
+Workspace.ChildAdded:Connect(function(child)
+    -- Kiểm tra xem vật thể đó có phải là Trái ác quỷ không (thường chứa chữ "Fruit")
+    if child:IsA("Tool") or child:FindFirstChild("Handle") then
+        if string.find(string.lower(child.Name), "fruit") then
+            
+            -- Lấy tên chính xác của trái (Ví dụ: "Kitsune Fruit", "Leopard Fruit")
+            local fruitName = child.Name 
+            
+            -- Tạo TextLabel hiển thị ESP với tên riêng biệt thay vì chữ "Fruit" chung chung
+            print("Đã tìm thấy: " .. fruitName)
+            -- Từ đây script sẽ vẽ một cái BillboardGui lơ lửng trên màn hình hiển thị đúng cái 'fruitName' đó
+        end
+    end
+end)
