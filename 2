@@ -1,0 +1,181 @@
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "HTD RLX Tổng Hợp",
+    SubTitle = "by HTD",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+local Tabs = {
+    Movement = Window:AddTab({ Title = "Movement", Icon = "zap" }),
+    Visual   = Window:AddTab({ Title = "Visual", Icon = "eye" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+}
+
+local Options = Fluent.Options
+local player = game.Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local flyConnection
+
+-- =====================
+-- TAB: MOVEMENT
+-- =====================
+
+Tabs.Movement:AddSlider("WalkSpeed", {
+    Title = "Walk Speed",
+    Description = "Chỉnh tốc độ đi lại",
+    Default = 16,
+    Min = 16,
+    Max = 300,
+    Rounding = 0,
+    Callback = function(Value)
+        local char = player.Character
+        if char and char:FindFirstChild("Humanoid") then
+            char.Humanoid.WalkSpeed = Value
+        end
+    end
+})
+
+Tabs.Movement:AddSlider("JumpPower", {
+    Title = "Jump Power",
+    Description = "Chỉnh lực nhảy",
+    Default = 50,
+    Min = 50,
+    Max = 500,
+    Rounding = 0,
+    Callback = function(Value)
+        local char = player.Character
+        if char and char:FindFirstChild("Humanoid") then
+            char.Humanoid.JumpPower = Value
+        end
+    end
+})
+
+local FlyToggle = Tabs.Movement:AddToggle("FlyToggle", {
+    Title = "Fly",
+    Description = "Bay tự do",
+    Default = false
+})
+
+FlyToggle:OnChanged(function()
+    local enabled = Options.FlyToggle.Value
+    local char = player.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    if enabled then
+        local bv = Instance.new("BodyVelocity")
+        bv.Name = "FlyVelocity"
+        bv.Velocity = Vector3.zero
+        bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+        bv.Parent = hrp
+
+        flyConnection = RunService.RenderStepped:Connect(function()
+            if hrp:FindFirstChild("FlyVelocity") then
+                local cam = workspace.CurrentCamera
+                hrp.FlyVelocity.Velocity = cam.CFrame.LookVector * 60
+            end
+        end)
+    else
+        if flyConnection then flyConnection:Disconnect() end
+        if hrp:FindFirstChild("FlyVelocity") then
+            hrp.FlyVelocity:Destroy()
+        end
+    end
+end)
+
+Tabs.Movement:AddToggle("NoclipToggle", {
+    Title = "Noclip",
+    Description = "Xuyên tường",
+    Default = false
+})
+
+RunService.Stepped:Connect(function()
+    if Options.NoclipToggle and Options.NoclipToggle.Value then
+        local char = player.Character
+        if char then
+            for _, part in ipairs(char:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end
+end)
+
+-- =====================
+-- TAB: VISUAL
+-- =====================
+
+Tabs.Visual:AddToggle("FullBright", {
+    Title = "Full Bright",
+    Description = "Làm sáng toàn bộ map",
+    Default = false
+})
+
+Options.FullBright:OnChanged(function()
+    if Options.FullBright.Value then
+        game.Lighting.Brightness = 2
+        game.Lighting.ClockTime = 14
+        game.Lighting.FogEnd = 1e6
+    else
+        game.Lighting.Brightness = 1
+        game.Lighting.ClockTime = 12
+        game.Lighting.FogEnd = 100000
+    end
+end)
+
+-- Bật/Tắt giản kích thước (thu nhỏ xuống dưới 400px)
+Tabs.Visual:AddButton({
+    Title = "Thu Nhỏ / Mở Rộng",
+    Description = "Giản kích thước cửa sổ xuống dưới 400",
+    Callback = function()
+        local current = Window.GUI.Size
+        if current.Y.Offset > 400 then
+            Window.GUI:TweenSize(
+                UDim2.fromOffset(580, 380),
+                Enum.EasingDirection.Out,
+                Enum.EasingStyle.Quart,
+                0.3,
+                true
+            )
+        else
+            Window.GUI:TweenSize(
+                UDim2.fromOffset(580, 460),
+                Enum.EasingDirection.Out,
+                Enum.EasingStyle.Quart,
+                0.3,
+                true
+            )
+        end
+    end
+})
+
+-- =====================
+-- TAB: SETTINGS
+-- =====================
+
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+InterfaceManager:SetFolder("HTD_RLX_Hub")
+SaveManager:SetFolder("HTD_RLX_Hub/configs")
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+Window:SelectTab(1)
+
+Fluent:Notify({
+    Title = "HTD RLX Tổng Hợp",
+    Content = "Script đã load thành công!",
+    Duration = 5
+})
+
+SaveManager:LoadAutoloadConfig()
