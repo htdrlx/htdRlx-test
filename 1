@@ -1,0 +1,85 @@
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
+
+local Window = OrionLib:MakeWindow({
+    Name = "Hub Tổng Hợp",
+    HidePremium = false,
+    SaveConfig = true,
+    ConfigFolder = "HubConfig"
+})
+
+-- TAB 1: Movement
+local MovementTab = Window:MakeTab({
+    Name = "Movement",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+local walkspeed = 16
+MovementTab:AddSlider({
+    Name = "Walk Speed",
+    Min = 16,
+    Max = 300,
+    Default = 16,
+    Color = Color3.fromRGB(255,255,255),
+    Increment = 1,
+    ValueName = "speed",
+    Callback = function(value)
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = value
+    end
+})
+
+MovementTab:AddSlider({
+    Name = "Jump Power",
+    Min = 50,
+    Max = 500,
+    Default = 50,
+    Color = Color3.fromRGB(255,255,255),
+    Increment = 1,
+    ValueName = "power",
+    Callback = function(value)
+        game.Players.LocalPlayer.Character.Humanoid.JumpPower = value
+    end
+})
+
+MovementTab:AddToggle({
+    Name = "Fly",
+    Default = false,
+    Callback = function(value)
+        local player = game.Players.LocalPlayer
+        local char = player.Character
+        if value then
+            local bv = Instance.new("BodyVelocity", char.HumanoidRootPart)
+            bv.Name = "FlyVelocity"
+            bv.Velocity = Vector3.new(0, 0, 0)
+            bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+            game:GetService("RunService").RenderStepped:Connect(function()
+                if char:FindFirstChild("FlyVelocity") then
+                    local cam = workspace.CurrentCamera
+                    bv.Velocity = cam.CFrame.LookVector * 50
+                end
+            end)
+        else
+            if char.HumanoidRootPart:FindFirstChild("FlyVelocity") then
+                char.HumanoidRootPart.FlyVelocity:Destroy()
+            end
+        end
+    end
+})
+
+-- TAB 2: Visual
+local VisualTab = Window:MakeTab({
+    Name = "Visual",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+VisualTab:AddToggle({
+    Name = "Full Bright",
+    Default = false,
+    Callback = function(value)
+        game.Lighting.Brightness = value and 2 or 1
+        game.Lighting.ClockTime = value and 14 or 12
+    end
+})
+
+OrionLib:Init()
