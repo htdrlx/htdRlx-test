@@ -1,0 +1,465 @@
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "Banana Cat Hub - [Premium] By Obii",
+    SubTitle = "",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(550, 460),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+local Tabs = {
+    Shop               = Window:AddTab({ Title = "Shop",                    Icon = "shopping-cart" }),
+    StatsAndServer     = Window:AddTab({ Title = "Stats And Server",        Icon = "bar-chart-2" }),
+    LocalPlayer        = Window:AddTab({ Title = "Local Player",            Icon = "user" }),
+    SettingFram        = Window:AddTab({ Title = "Setting Fram",            Icon = "sliders-horizontal" }),
+    HoldAndSkill       = Window:AddTab({ Title = "Hold And Select Skill",   Icon = "sword" }),
+    Framing            = Window:AddTab({ Title = "Framing",                 Icon = "activity" }),
+    StackFraming       = Window:AddTab({ Title = "Stack Framing",           Icon = "layers" }),
+    FramingOther       = Window:AddTab({ Title = "Framing Other",           Icon = "shuffle" }),
+    FruitRaidDungeon   = Window:AddTab({ Title = "Fruit & Raid, Dungeon",   Icon = "cherry" }),
+    SeaEvent           = Window:AddTab({ Title = "Sea Event",               Icon = "waves" }),
+    UpgradeRace        = Window:AddTab({ Title = "Upgrade Race",            Icon = "zap" }),
+    GetUpgradeItem     = Window:AddTab({ Title = "Get Upgrade And Item",    Icon = "package" }),
+    VolcanoEvent       = Window:AddTab({ Title = "Volcano Event",           Icon = "flame" }),
+    ESP                = Window:AddTab({ Title = "ESP",                     Icon = "scan" }),
+    PvP                = Window:AddTab({ Title = "PvP",                     Icon = "crosshair" }),
+    Webhook            = Window:AddTab({ Title = "Tab Webhook",             Icon = "webhook" }),
+    Settings           = Window:AddTab({ Title = "Settings",                Icon = "settings" }),
+}
+
+local Options = Fluent.Options
+local player = game.Players.LocalPlayer
+local RS = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TeleportService = game:GetService("TeleportService")
+
+-- ========================
+-- TAB: SHOP
+-- ========================
+
+Tabs.Shop:AddButton({
+    Title = "Redeem Code",
+    Description = "Nhap code doi thuong",
+    Callback = function()
+        RS.Remotes.RedeemCode:FireServer()
+    end
+})
+
+Tabs.Shop:AddButton({
+    Title = "Teleport Old World",
+    Description = "Dich chuyen ve First Sea",
+    Callback = function()
+        RS.Remotes.ChangeIsland:FireServer("First Sea")
+    end
+})
+
+Tabs.Shop:AddButton({
+    Title = "Teleport Third Sea",
+    Description = "Dich chuyen den Third Sea",
+    Callback = function()
+        RS.Remotes.ChangeIsland:FireServer("Third Sea")
+    end
+})
+
+Tabs.Shop:AddButton({
+    Title = "Buy Dual Flintlock",
+    Callback = function()
+        RS.Remotes.BuyWeapon:FireServer("Dual Flintlock")
+    end
+})
+
+Tabs.Shop:AddButton({
+    Title = "Reroll Race",
+    Callback = function()
+        RS.Remotes.RerollRace:FireServer()
+    end
+})
+
+Tabs.Shop:AddButton({
+    Title = "Reset Stats",
+    Callback = function()
+        RS.Remotes.ResetStats:FireServer()
+    end
+})
+
+Tabs.Shop:AddButton({
+    Title = "Buy Ghoul Race",
+    Callback = function()
+        RS.Remotes.BuyRace:FireServer("Ghoul")
+    end
+})
+
+Tabs.Shop:AddButton({
+    Title = "Buy Cyborg Race",
+    Callback = function()
+        RS.Remotes.BuyRace:FireServer("Cyborg")
+    end
+})
+
+Tabs.Shop:AddParagraph({ Title = "Fighting Shop", Content = "Mua cac fighting style" })
+
+local fightingStyles = {
+    "Black Leg", "Fishman Karate", "Electro", "Dragon Breath",
+    "Superhuman", "Death Step", "Sharkman Karate", "Electric Claw",
+    "Dragon Talon", "God Human", "Sanguine Art"
+}
+
+for _, style in ipairs(fightingStyles) do
+    local key = style:gsub(" ", "")
+    Tabs.Shop:AddToggle(key, {
+        Title = style,
+        Default = false
+    })
+    Options[key]:OnChanged(function()
+        if Options[key].Value then
+            RS.Remotes.BuyFighting:FireServer(style)
+        end
+    end)
+end
+
+Tabs.Shop:AddParagraph({ Title = "Ability Shop", Content = "Mua cac ability" })
+
+local abilities = {
+    { name = "Skyjump",          price = "$10.000" },
+    { name = "Buso Haki",        price = "$25.000" },
+    { name = "Observation Haki", price = "$750.000" },
+    { name = "Soru",             price = "$100.000" },
+}
+
+for _, ab in ipairs(abilities) do
+    Tabs.Shop:AddButton({
+        Title = ab.name .. " [" .. ab.price .. "]",
+        Callback = function()
+            RS.Remotes.BuyAbility:FireServer(ab.name)
+        end
+    })
+end
+
+-- ========================
+-- TAB: STATS AND SERVER
+-- ========================
+
+Tabs.StatsAndServer:AddParagraph({ Title = "Stats", Content = "" })
+
+local timerLabel = Tabs.StatsAndServer:AddParagraph({
+    Title = "Timer",
+    Content = "00 h  00 m  00 s"
+})
+
+local serverTimerLabel = Tabs.StatsAndServer:AddParagraph({
+    Title = "Server Timer",
+    Content = "00 h  00 m  00 s"
+})
+
+local fistTimerLabel = Tabs.StatsAndServer:AddParagraph({
+    Title = "Next Timer Spam Fist Of Darkness Or God's Chalice",
+    Content = "00 h  00 m  00 s"
+})
+
+-- Boss/event labels
+local function makeLabel(title)
+    return Tabs.StatsAndServer:AddParagraph({ Title = title, Content = "X" })
+end
+
+local eliteHunterLabel     = makeLabel("Elite Hunter")
+local tyrantEyesLabel      = makeLabel("Tyrant Eyes")
+local cakePrinceLabel      = makeLabel("Cake Prince")
+local leviathanLabel       = makeLabel("Leviathan")
+local mirageLabel          = makeLabel("Mirage Island")
+local prehistoricLabel     = makeLabel("Prehistoric Island")
+local frozenLabel          = makeLabel("Frozen Dimension")
+local moonLabel            = makeLabel("Moon")
+local ancientOneLabel      = makeLabel("Ancient One You Are")
+
+-- Helper check value
+local function checkVal(path)
+    local ok, val = pcall(function()
+        return game:GetService("ReplicatedStorage")[path].Value
+    end)
+    if not ok then return nil end
+    return val
+end
+
+local startTime = tick()
+local moonCount = 0
+local moonMax = 5 -- full moon sau 5 dem
+
+RunService.Heartbeat:Connect(function()
+    -- Timer
+    local clockTime = game:GetService("Lighting").ClockTime
+    local h = math.floor(clockTime)
+    local m = math.floor((clockTime - h) * 60)
+    local s = math.floor(((clockTime - h) * 60 - m) * 60)
+    timerLabel:Set("Timer", string.format("%02d h  %02d m  %02d s", h, m, s))
+
+    -- Server Timer
+    local elapsed = tick() - startTime
+    local sh = math.floor(elapsed / 3600)
+    local sm = math.floor((elapsed % 3600) / 60)
+    local ss = math.floor(elapsed % 60)
+    serverTimerLabel:Set("Server Timer", string.format("%02d h  %02d m  %02d s", sh, sm, ss))
+
+    -- Fist timer placeholder
+    fistTimerLabel:Set("Next Timer Spam Fist Of Darkness Or God's Chalice", "00 h  00 m  00 s")
+
+    -- Boss/event check (dung X neu ko co, tick neu co)
+    local function getStatus(path)
+        local val = checkVal(path)
+        if val == nil then return "X" end
+        if val == true or val == 1 then return "V" end
+        return "X"
+    end
+
+    eliteHunterLabel:Set("Elite Hunter",         getStatus("EliteHunter"))
+    tyrantEyesLabel:Set("Tyrant Eyes",           getStatus("TyrantEyes"))
+    cakePrinceLabel:Set("Cake Prince",           getStatus("CakePrince"))
+    leviathanLabel:Set("Leviathan",              getStatus("Leviathan"))
+    mirageLabel:Set("Mirage Island",             getStatus("MirageIsland"))
+    prehistoricLabel:Set("Prehistoric Island",   getStatus("PrehistoricIsland"))
+    frozenLabel:Set("Frozen Dimension",          getStatus("FrozenDimension"))
+    ancientOneLabel:Set("Ancient One You Are",   getStatus("AncientOne"))
+
+    -- Moon: hien thi x/5
+    local moonVal = checkVal("MoonCount")
+    if moonVal then
+        moonCount = tonumber(moonVal) or moonCount
+    end
+    moonLabel:Set("Moon", moonCount .. " / " .. moonMax)
+end)
+
+-- SERVER SECTION
+Tabs.StatsAndServer:AddParagraph({ Title = "Server", Content = "" })
+
+local jobIDInput = ""
+Tabs.StatsAndServer:AddInput("JobIDInput", {
+    Title = "Input Your JobID Here",
+    Placeholder = "Input Here",
+    Default = "",
+    Numeric = false,
+    Finished = true,
+    Callback = function(Value)
+        jobIDInput = Value
+    end
+})
+
+Tabs.StatsAndServer:AddToggle("SpamJoin", {
+    Title = "Spam Join",
+    Description = "Spam join server theo JobID",
+    Default = false
+})
+
+Options.SpamJoin:OnChanged(function()
+    if Options.SpamJoin.Value then
+        task.spawn(function()
+            while Options.SpamJoin.Value do
+                if jobIDInput ~= "" then
+                    pcall(function()
+                        TeleportService:TeleportToPlaceInstance(game.PlaceId, jobIDInput, player)
+                    end)
+                end
+                task.wait(1)
+            end
+        end)
+    end
+end)
+
+Tabs.StatsAndServer:AddButton({
+    Title = "Copy Join",
+    Description = "Copy link join server",
+    Callback = function()
+        if jobIDInput ~= "" then
+            setclipboard("roblox://experiences/start?placeId=" .. game.PlaceId .. "&gameInstanceId=" .. jobIDInput)
+            Fluent:Notify({ Title = "Server", Content = "Da copy link!", Duration = 3 })
+        else
+            Fluent:Notify({ Title = "Server", Content = "Nhap JobID truoc!", Duration = 3 })
+        end
+    end
+})
+
+Tabs.StatsAndServer:AddButton({
+    Title = "Rejoin Server",
+    Description = "Rejoin server hien tai",
+    Callback = function()
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, player)
+    end
+})
+
+Tabs.StatsAndServer:AddButton({
+    Title = "Hop Server",
+    Description = "Nhay sang server ngau nhien",
+    Callback = function()
+        pcall(function()
+            local servers = TeleportService:GetPlayerPlaceInstancesAsync(player.UserId)
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, servers[1], player)
+        end)
+    end
+})
+
+Tabs.StatsAndServer:AddButton({
+    Title = "Hop Server Less Player",
+    Description = "Nhay sang server it nguoi nhat",
+    Callback = function()
+        local Http = game:GetService("HttpService")
+        local url = "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
+        local ok, res = pcall(function() return Http:GetAsync(url) end)
+        if ok then
+            local data = Http:JSONDecode(res)
+            local best, bestCount = nil, math.huge
+            for _, s in ipairs(data.data) do
+                if s.playing < bestCount and s.id ~= game.JobId then
+                    best = s.id
+                    bestCount = s.playing
+                end
+            end
+            if best then
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, best, player)
+            end
+        end
+    end
+})
+
+-- ========================
+-- TAB: LOCAL PLAYER
+-- ========================
+
+Tabs.LocalPlayer:AddParagraph({ Title = "Local Player", Content = "Tinh nang se duoc them vao day." })
+
+-- ========================
+-- TAB: SETTING FRAM
+-- ========================
+
+Tabs.SettingFram:AddParagraph({ Title = "Setting Fram", Content = "Tinh nang se duoc them vao day." })
+
+-- ========================
+-- TAB: HOLD AND SELECT SKILL
+-- ========================
+
+Tabs.HoldAndSkill:AddParagraph({ Title = "Hold And Select Skill", Content = "Tinh nang se duoc them vao day." })
+
+-- ========================
+-- TAB: FRAMING
+-- ========================
+
+Tabs.Framing:AddParagraph({ Title = "Framing", Content = "Tinh nang se duoc them vao day." })
+
+-- ========================
+-- TAB: STACK FRAMING
+-- ========================
+
+Tabs.StackFraming:AddParagraph({ Title = "Stack Framing", Content = "Tinh nang se duoc them vao day." })
+
+-- ========================
+-- TAB: FRAMING OTHER
+-- ========================
+
+Tabs.FramingOther:AddParagraph({ Title = "Framing Other", Content = "Tinh nang se duoc them vao day." })
+
+-- ========================
+-- TAB: FRUIT & RAID, DUNGEON
+-- ========================
+
+Tabs.FruitRaidDungeon:AddParagraph({ Title = "Fruit & Raid, Dungeon", Content = "Tinh nang se duoc them vao day." })
+
+-- ========================
+-- TAB: SEA EVENT
+-- ========================
+
+Tabs.SeaEvent:AddParagraph({ Title = "Sea Event", Content = "Tinh nang se duoc them vao day." })
+
+-- ========================
+-- TAB: UPGRADE RACE
+-- ========================
+
+Tabs.UpgradeRace:AddParagraph({ Title = "Upgrade Race", Content = "Tinh nang se duoc them vao day." })
+
+-- ========================
+-- TAB: GET UPGRADE AND ITEM
+-- ========================
+
+Tabs.GetUpgradeItem:AddParagraph({ Title = "Get Upgrade And Item", Content = "Tinh nang se duoc them vao day." })
+
+-- ========================
+-- TAB: VOLCANO EVENT
+-- ========================
+
+Tabs.VolcanoEvent:AddParagraph({ Title = "Volcano Event", Content = "Tinh nang se duoc them vao day." })
+
+-- ========================
+-- TAB: ESP
+-- ========================
+
+Tabs.ESP:AddParagraph({ Title = "ESP", Content = "Tinh nang se duoc them vao day." })
+
+-- ========================
+-- TAB: PvP
+-- ========================
+
+Tabs.PvP:AddParagraph({ Title = "PvP", Content = "Tinh nang se duoc them vao day." })
+
+-- ========================
+-- TAB: WEBHOOK
+-- ========================
+
+local webhookURL = ""
+
+Tabs.Webhook:AddInput("WebhookURL", {
+    Title = "Webhook URL",
+    Description = "Nhap link Discord Webhook",
+    Default = "",
+    Placeholder = "https://discord.com/api/webhooks/...",
+    Numeric = false,
+    Finished = true,
+    Callback = function(Value)
+        webhookURL = Value
+    end
+})
+
+Tabs.Webhook:AddButton({
+    Title = "Test Webhook",
+    Description = "Gui tin nhan test toi webhook",
+    Callback = function()
+        if webhookURL == "" then
+            Fluent:Notify({ Title = "Webhook", Content = "Vui long nhap URL webhook truoc!", Duration = 3 })
+            return
+        end
+        local data = game:GetService("HttpService"):JSONEncode({
+            content = "Banana Cat Hub - Webhook test thanh cong!"
+        })
+        local ok, err = pcall(function()
+            game:GetService("HttpService"):PostAsync(webhookURL, data)
+        end)
+        if ok then
+            Fluent:Notify({ Title = "Webhook", Content = "Gui thanh cong!", Duration = 3 })
+        else
+            Fluent:Notify({ Title = "Webhook", Content = "Loi: " .. tostring(err), Duration = 3 })
+        end
+    end
+})
+
+-- ========================
+-- SETTINGS
+-- ========================
+
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+InterfaceManager:SetFolder("BananaCatHub")
+SaveManager:SetFolder("BananaCatHub/configs")
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+Window:SelectTab(1)
+
+Fluent:Notify({
+    Title = "Banana Cat Hub",
+    Content = "Premium Obii da load thanh cong!",
+    Duration = 6
+})
+
+SaveManager:LoadAutoloadConfig()
