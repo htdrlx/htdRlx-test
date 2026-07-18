@@ -1,0 +1,77 @@
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "Banana Cat Hub - ",
+    SubTitle = "[Premium] By Obii",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+local Tabs = {
+    Shop               = Window:AddTab({ Title = "Shop",                    Icon = "shopping-cart" }),
+    StatsAndServer     = Window:AddTab({ Title = "Stats And Server",        Icon = "bar-chart-2" }),
+    LocalPlayer        = Window:AddTab({ Title = "Local Player",            Icon = "user" }),
+    SettingFram        = Window:AddTab({ Title = "Setting Fram",            Icon = "sliders-horizontal" }),
+    HoldAndSkill       = Window:AddTab({ Title = "Hold And Select Skill",   Icon = "sword" }),
+    Framing            = Window:AddTab({ Title = "Framing",                 Icon = "activity" }),
+    StackFraming       = Window:AddTab({ Title = "Stack Framing",           Icon = "layers" }),
+    FramingOther       = Window:AddTab({ Title = "Framing Other",           Icon = "shuffle" }),
+    FruitRaidDungeon   = Window:AddTab({ Title = "Fruit & Raid, Dungeon",   Icon = "cherry" }),
+    SeaEvent           = Window:AddTab({ Title = "Sea Event",               Icon = "waves" }),
+    UpgradeRace        = Window:AddTab({ Title = "Upgrade Race",            Icon = "zap" }),
+    GetUpgradeItem     = Window:AddTab({ Title = "Get Upgrade And Item",    Icon = "package" }),
+    VolcanoEvent       = Window:AddTab({ Title = "Volcano Event",           Icon = "flame" }),
+    ESP                = Window:AddTab({ Title = "ESP",                     Icon = "scan" }),
+    PvP                = Window:AddTab({ Title = "PvP",                     Icon = "crosshair" }),
+    Webhook            = Window:AddTab({ Title = "Tab Webhook",             Icon = "webhook" }),
+    Settings           = Window:AddTab({ Title = "Settings",                Icon = "settings" }),
+}
+
+-- ========================
+-- PLACEHOLDER CÁC TAB
+-- ========================
+
+Tabs.Shop:AddParagraph({ Title = "Shop", Content = "Tính năng Shop sẽ được thêm vào đây." })
+Tabs.StatsAndServer:AddParagraph({ Title = "Stats And Server", Content = "Tính năng Stats & Server sẽ được thêm vào đây." })
+Tabs.LocalPlayer:AddParagraph({ Title = "Local Player", Content = "Tính năng Local Player sẽ được thêm vào đây." })
+Tabs.SettingFram:AddParagraph({ Title = "Setting Fram", Content = "Cài đặt Fram sẽ được thêm vào đây." })
+Tabs.HoldAndSkill:AddParagraph({ Title = "Hold And Select Skill", Content = "Tính năng Hold & Skill sẽ được thêm vào đây." })
+Tabs.Framing:AddParagraph({ Title = "Framing", Content = "Tính năng Framing sẽ được thêm vào đây." })
+Tabs.StackFraming:AddParagraph({ Title = "Stack Framing", Content = "Tính năng Stack Framing sẽ được thêm vào đây." })
+Tabs.FramingOther:AddParagraph({ Title = "Framing Other", Content = "Tính năng Framing Other sẽ được thêm vào đây." })
+Tabs.FruitRaidDungeon:AddParagraph({ Title = "Fruit & Raid, Dungeon", Content = "Tính năng Fruit, Raid & Dungeon sẽ được thêm vào đây." })
+Tabs.SeaEvent:AddParagraph({ Title = "Sea Event", Content = "Tính năng Sea Event sẽ được thêm vào đây." })
+Tabs.UpgradeRace:AddParagraph({ Title = "Upgrade Race", Content = "Tính năng Upgrade Race sẽ được thêm vào đây." })
+Tabs.GetUpgradeItem:AddParagraph({ Title = "Get Upgrade And Item", Content = "Tính năng Get Upgrade & Item sẽ được thêm vào đây." })
+Tabs.VolcanoEvent:AddParagraph({ Title = "Volcano Event", Content = "Tính năng Volcano Event sẽ được thêm vào đây." })
+Tabs.ESP:AddParagraph({ Title = "ESP", Content = "Tính năng ESP sẽ được thêm vào đây." })
+Tabs.PvP:AddParagraph({ Title = "PvP", Content = "Tính năng PvP sẽ được thêm vào đây." })
+Tabs.Webhook:AddParagraph({ Title = "Tab Webhook", Content = "Cấu hình Webhook sẽ được thêm vào đây." })
+
+-- ========================
+-- SETTINGS
+-- ========================
+
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+InterfaceManager:SetFolder("BananaCatHub")
+SaveManager:SetFolder("BananaCatHub/configs")
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+Window:SelectTab(1)
+
+Fluent:Notify({
+    Title = "Banana Cat Hub",
+    Content = "Premium Obii đã load thành công!",
+    Duration = 6
+})
+
+SaveManager:LoadAutoloadConfig()
