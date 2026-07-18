@@ -1,0 +1,293 @@
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "Banana Cat Hub  - ",
+    SubTitle = "[Premium] By Obii",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+local Tabs = {
+    Shop               = Window:AddTab({ Title = "Shop",                    Icon = "shopping-cart" }),
+    StatsAndServer     = Window:AddTab({ Title = "Stats And Server",        Icon = "bar-chart-2" }),
+    LocalPlayer        = Window:AddTab({ Title = "Local Player",            Icon = "user" }),
+    SettingFram        = Window:AddTab({ Title = "Setting Fram",            Icon = "sliders-horizontal" }),
+    HoldAndSkill       = Window:AddTab({ Title = "Hold And Select Skill",   Icon = "sword" }),
+    Framing            = Window:AddTab({ Title = "Framing",                 Icon = "activity" }),
+    StackFraming       = Window:AddTab({ Title = "Stack Framing",           Icon = "layers" }),
+    FramingOther       = Window:AddTab({ Title = "Framing Other",           Icon = "shuffle" }),
+    FruitRaidDungeon   = Window:AddTab({ Title = "Fruit & Raid, Dungeon",   Icon = "cherry" }),
+    SeaEvent           = Window:AddTab({ Title = "Sea Event",               Icon = "waves" }),
+    UpgradeRace        = Window:AddTab({ Title = "Upgrade Race",            Icon = "zap" }),
+    GetUpgradeItem     = Window:AddTab({ Title = "Get Upgrade And Item",    Icon = "package" }),
+    VolcanoEvent       = Window:AddTab({ Title = "Volcano Event",           Icon = "flame" }),
+    ESP                = Window:AddTab({ Title = "ESP",                     Icon = "scan" }),
+    PvP                = Window:AddTab({ Title = "PvP",                     Icon = "crosshair" }),
+    Webhook            = Window:AddTab({ Title = "Tab Webhook",             Icon = "webhook" }),
+    Settings           = Window:AddTab({ Title = "Settings",                Icon = "settings" }),
+}
+
+local Options = Fluent.Options
+local player = game.Players.LocalPlayer
+local RS = game:GetService("ReplicatedStorage")
+
+-- ========================
+-- TAB: SHOP
+-- ========================
+
+Tabs.Shop:AddButton({
+    Title = "Redeem Code",
+    Description = "Nhập code đổi thưởng",
+    Callback = function()
+        RS.Remotes.RedeemCode:FireServer()
+    end
+})
+
+Tabs.Shop:AddButton({
+    Title = "Teleport Old World",
+    Description = "Dịch chuyển về First Sea",
+    Callback = function()
+        RS.Remotes.ChangeIsland:FireServer("First Sea")
+    end
+})
+
+Tabs.Shop:AddButton({
+    Title = "Teleport Third Sea",
+    Description = "Dịch chuyển đến Third Sea",
+    Callback = function()
+        RS.Remotes.ChangeIsland:FireServer("Third Sea")
+    end
+})
+
+Tabs.Shop:AddButton({
+    Title = "Buy Dual Flintlock",
+    Callback = function()
+        RS.Remotes.BuyWeapon:FireServer("Dual Flintlock")
+    end
+})
+
+Tabs.Shop:AddButton({
+    Title = "Reroll Race",
+    Callback = function()
+        RS.Remotes.RerollRace:FireServer()
+    end
+})
+
+Tabs.Shop:AddButton({
+    Title = "Reset Stats",
+    Callback = function()
+        RS.Remotes.ResetStats:FireServer()
+    end
+})
+
+Tabs.Shop:AddButton({
+    Title = "Buy Ghoul Race",
+    Callback = function()
+        RS.Remotes.BuyRace:FireServer("Ghoul")
+    end
+})
+
+Tabs.Shop:AddButton({
+    Title = "Buy Cyborg Race",
+    Callback = function()
+        RS.Remotes.BuyRace:FireServer("Cyborg")
+    end
+})
+
+Tabs.Shop:AddParagraph({ Title = "⚔️ Fighting Shop", Content = "Mua các fighting style" })
+
+local fightingStyles = {
+    "Black Leg", "Fishman Karate", "Electro", "Dragon Breath",
+    "Superhuman", "Death Step", "Sharkman Karate", "Electric Claw",
+    "Dragon Talon", "God Human", "Sanguine Art"
+}
+
+for _, style in ipairs(fightingStyles) do
+    local key = style:gsub(" ", "")
+    Tabs.Shop:AddToggle(key, {
+        Title = style,
+        Description = "Mua " .. style,
+        Default = false
+    })
+    Options[key]:OnChanged(function()
+        if Options[key].Value then
+            RS.Remotes.BuyFighting:FireServer(style)
+        end
+    end)
+end
+
+Tabs.Shop:AddParagraph({ Title = "✨ Ability Shop", Content = "Mua các ability" })
+
+local abilities = {
+    { name = "Skyjump",          price = "$10.000" },
+    { name = "Buso Haki",        price = "$25.000" },
+    { name = "Observation Haki", price = "$750.000" },
+    { name = "Soru",             price = "$100.000" },
+}
+
+for _, ab in ipairs(abilities) do
+    Tabs.Shop:AddButton({
+        Title = ab.name .. " [" .. ab.price .. "]",
+        Description = "Mua " .. ab.name,
+        Callback = function()
+            RS.Remotes.BuyAbility:FireServer(ab.name)
+        end
+    })
+end
+
+-- ========================
+-- TAB: STATS AND SERVER
+-- ========================
+
+Tabs.StatsAndServer:AddParagraph({ Title = "Stats And Server", Content = "Tính năng sẽ được thêm vào đây." })
+
+-- ========================
+-- TAB: LOCAL PLAYER
+-- ========================
+
+Tabs.LocalPlayer:AddParagraph({ Title = "Local Player", Content = "Tính năng sẽ được thêm vào đây." })
+
+-- ========================
+-- TAB: SETTING FRAM
+-- ========================
+
+Tabs.SettingFram:AddParagraph({ Title = "Setting Fram", Content = "Tính năng sẽ được thêm vào đây." })
+
+-- ========================
+-- TAB: HOLD AND SELECT SKILL
+-- ========================
+
+Tabs.HoldAndSkill:AddParagraph({ Title = "Hold And Select Skill", Content = "Tính năng sẽ được thêm vào đây." })
+
+-- ========================
+-- TAB: FRAMING
+-- ========================
+
+Tabs.Framing:AddParagraph({ Title = "Framing", Content = "Tính năng sẽ được thêm vào đây." })
+
+-- ========================
+-- TAB: STACK FRAMING
+-- ========================
+
+Tabs.StackFraming:AddParagraph({ Title = "Stack Framing", Content = "Tính năng sẽ được thêm vào đây." })
+
+-- ========================
+-- TAB: FRAMING OTHER
+-- ========================
+
+Tabs.FramingOther:AddParagraph({ Title = "Framing Other", Content = "Tính năng sẽ được thêm vào đây." })
+
+-- ========================
+-- TAB: FRUIT & RAID, DUNGEON
+-- ========================
+
+Tabs.FruitRaidDungeon:AddParagraph({ Title = "Fruit & Raid, Dungeon", Content = "Tính năng sẽ được thêm vào đây." })
+
+-- ========================
+-- TAB: SEA EVENT
+-- ========================
+
+Tabs.SeaEvent:AddParagraph({ Title = "Sea Event", Content = "Tính năng sẽ được thêm vào đây." })
+
+-- ========================
+-- TAB: UPGRADE RACE
+-- ========================
+
+Tabs.UpgradeRace:AddParagraph({ Title = "Upgrade Race", Content = "Tính năng sẽ được thêm vào đây." })
+
+-- ========================
+-- TAB: GET UPGRADE AND ITEM
+-- ========================
+
+Tabs.GetUpgradeItem:AddParagraph({ Title = "Get Upgrade And Item", Content = "Tính năng sẽ được thêm vào đây." })
+
+-- ========================
+-- TAB: VOLCANO EVENT
+-- ========================
+
+Tabs.VolcanoEvent:AddParagraph({ Title = "Volcano Event", Content = "Tính năng sẽ được thêm vào đây." })
+
+-- ========================
+-- TAB: ESP
+-- ========================
+
+Tabs.ESP:AddParagraph({ Title = "ESP", Content = "Tính năng sẽ được thêm vào đây." })
+
+-- ========================
+-- TAB: PvP
+-- ========================
+
+Tabs.PvP:AddParagraph({ Title = "PvP", Content = "Tính năng sẽ được thêm vào đây." })
+
+-- ========================
+-- TAB: WEBHOOK
+-- ========================
+
+local webhookURL = ""
+
+Tabs.Webhook:AddInput("WebhookURL", {
+    Title = "Webhook URL",
+    Description = "Nhập link Discord Webhook",
+    Default = "",
+    Placeholder = "https://discord.com/api/webhooks/...",
+    Numeric = false,
+    Finished = true,
+    Callback = function(Value)
+        webhookURL = Value
+    end
+})
+
+Tabs.Webhook:AddButton({
+    Title = "Test Webhook",
+    Description = "Gửi tin nhắn test tới webhook",
+    Callback = function()
+        if webhookURL == "" then
+            Fluent:Notify({
+                Title = "Webhook",
+                Content = "Vui lòng nhập URL webhook trước!",
+                Duration = 3
+            })
+            return
+        end
+        local HttpService = game:GetService("HttpService")
+        local data = HttpService:JSONEncode({
+            content = "✅ Banana Cat Hub - Webhook test thành công!"
+        })
+        local success, err = pcall(function()
+            game:GetService("HttpService"):PostAsync(webhookURL, data)
+        end)
+        if success then
+            Fluent:Notify({ Title = "Webhook", Content = "Gửi thành công!", Duration = 3 })
+        else
+            Fluent:Notify({ Title = "Webhook", Content = "Lỗi: " .. tostring(err), Duration = 3 })
+        end
+    end
+})
+
+-- ========================
+-- SETTINGS
+-- ========================
+
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+InterfaceManager:SetFolder("BananaCatHub")
+SaveManager:SetFolder("BananaCatHub/configs")
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+Window:SelectTab(1)
+
+Fluent:Notify({
+    Title = "Banana Cat Hub",
+    Content = " đã load thành công ",
+    Duration = 6
+})
+
+SaveManager:LoadAutoloadConfig()
