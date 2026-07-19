@@ -1,0 +1,243 @@
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Fly & Aura",
+    LoadingTitle = "Fly & Aura",
+    LoadingSubtitle = "By Obii",
+    Theme = "Default",
+})
+
+local Tab = Window:CreateTab("Main", 4483362458)
+local player = game.Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+-- Cache cho cả fly và bring
+local cachedMob = nil           -- con gần nhất (cho fly)
+local cachedMobList = {}        -- tối đa 6 con gần nhất (cho bring)
+local cacheTimer = 0
+
+-- Các kết nối
+local flyConn, noclipConn, bringConn, cacheConn
+local speedVal = 310
+
+-- Quản lý Bring Mob
+local activeBring = {}  -- dictionary: key = HumanoidRootPart, value = {BodyPosition, BodyGyro}
+
+-- Cập nhật cache mỗi 0.2 giây, lọc quái có [Lv.
+cacheConn = RunService.Heartbeat:Connect(function(dt)
+    cacheTimer = cacheTimer + dt
+    if cacheTimer < 0.2 then return end
+    cacheTimer = 0
+
+    local char = player.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then
+        cachedMob = nil
+        cachedMobList = {}
+        return
+    end
+
+    local mobs = {}
+    for _, part in ipairs(workspace:GetDescendants()) do
+        if part:IsA("BasePart") and part.Name == "HumanoidRootPart" then
+            local model = part.Parent
+            if model and model:IsA("Model") and model ~= char then
+                local hum = model:FindFirstChildWhichIsA("Humanoid")
+                if hum and hum.Health > 0 then
+                    -- Chỉ quái có hiển thị level
+                    if string.find(model.Name, "%[Lv%.%s*%d+%]") then
+                        local d = (hrp.Position - part.Position).Magnitude
+                        table.insert(mobs, {RootPart = part, Distance = d})
+                    end
+                end
+            end
+        end
+    end
+
+    -- Sắp xếp theo khoảng cách gần nhất
+    table.sort(mobs, function(a, b) return a.Distance < b.Distance end)
+
+    -- Lấy danh sách RootPart của 6 con gần nhất
+    local list = {}
+    for i = 1, math.min(6, #mobs) do
+        list[i] = mobs[i].RootPart
+    end
+    cachedMobList = list
+    cachedMob = list[1]  -- con gần nhất dùng cho fly
+end)
+
+-- Slider tốc độ
+Tab:CreateSlider({
+    Name = "Speed Tween",
+    Range = {50, 500},
+    Increment = 10,
+    Suffix = "Speed",
+    CurrentValue = 310,
+    Flag = "SpeedTween",
+    Callback = function(val)
+        speedVal = val
+    end
+})
+
+-- ================= TOGGLE FLY =================
+Tab:CreateToggle({
+    Name = "Fly",
+    CurrentValue = false,
+    Flag = "FlyToggle",
+    Callback = function(val)
+        local char = player.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        local hum = char and char:FindFirstChild("Humanoid")
+        if not hrp or not hum then return end
+
+        if val then
+            hum.PlatformStand = true
+
+            local bf = Instance.new("BodyForce")
+            bf.Name = "FlyBF"
+            bf.Force = Vector3.new(0, workspace.Gravity * hrp.AssemblyMass, 0)
+            bf.Parent = hrp
+
+            local bv = Instance.new("BodyVelocity")
+            bv.Name = "FlyBV"
+            bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+            bv.Velocity = Vector3.zero
+            bv.Parent = hrp
+
+            noclipConn = RunService.Stepped:Connect(function()
+                local c = player.Character
+                if not c then return end
+                for _, p in ipairs(c:GetDescendants()) do
+                    if p:IsA("BasePart") then p.CanCollide = false end
+                end
+            end)
+
+            flyConn = RunService.Heartbeat:Connect(function()
+                local h = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                if not h then return end
+
+                local bf2 = h:FindFirstChild("FlyBF")
+                if bf2 then
+                    bf2.Force = Vector3.new(0, workspace.Gravity * h.AssemblyMass, 0)
+                end
+
+                local bv2 = h:FindFirstChild("FlyBV")
+                if not bv2 then return end
+
+                local target = cachedMob  -- con gần nhất
+                if not target then
+                    bv2.Velocity = Vector3.zero
+                    return
+                end
+
+                -- Bay tới trên đầu quái 25 stud
+                local targetPos = Vector3.new(
+                    target.Position.X,
+                    target.Position.Y + 25,
+                    target.Position.Z
+                )
+                local dir = targetPos - h.Position
+                if dir.Magnitude > 3 then
+                    bv2.Velocity = dir.Unit * speedVal
+                else
+                    bv2.Velocity = Vector3.zero
+                end
+            end)
+        else
+            -- Tắt Fly
+            if flyConn then flyConn:Disconnect() end
+            if noclipConn then noclipConn:Disconnect() end
+            if hrp:FindFirstChild("FlyBV") then hrp.FlyBV:Destroy() end
+            if hrp:FindFirstChild("FlyBF") then hrp.FlyBF:Destroy() end
+            hum.PlatformStand = false
+            local c = player.Character
+            if c then
+                for _, p in ipairs(c:GetDescendants()) do
+                    if p:IsA("BasePart") then p.CanCollide = true end
+                end
+            end
+        end
+    end
+})
+
+-- ================= TOGGLE BRING MOB =================
+Tab:CreateToggle({
+    Name = "Bring Mob (Max 6)",
+    CurrentValue = false,
+    Flag = "BringToggle",
+    Callback = function(val)
+        local char = player.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
+
+        if val then
+            bringConn = RunService.Heartbeat:Connect(function()
+                local h = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                if not h then return end
+
+                local bringPos = h.Position + Vector3.new(0, 3, 0)  -- kéo về dưới chân, cách đất 3 stud
+
+                -- Duyệt danh sách quái mới nhất (tối đa 6 con)
+                for _, rootPart in ipairs(cachedMobList) do
+                    if rootPart and rootPart.Parent then
+                        local existing = activeBring[rootPart]
+                        if not existing then
+                            -- Tạo BodyPosition để kéo
+                            local bp = Instance.new("BodyPosition")
+                            bp.Name = "BringPos"
+                            bp.MaxForce = Vector3.new(1e6, 1e6, 1e6)
+                            bp.P = 10000
+                            bp.D = 1000
+                            bp.Position = bringPos
+                            bp.Parent = rootPart
+
+                            -- Tạo BodyGyro để giữ quái thẳng đứng
+                            local bg = Instance.new("BodyGyro")
+                            bg.Name = "BringGyro"
+                            bg.MaxTorque = Vector3.new(1e6, 1e6, 1e6)
+                            bg.P = 10000
+                            bg.D = 100
+                            bg.CFrame = CFrame.new(rootPart.Position, bringPos)
+                            bg.Parent = rootPart
+
+                            activeBring[rootPart] = {BodyPos = bp, BodyGyro = bg}
+                        else
+                            -- Cập nhật vị trí
+                            existing.BodyPos.Position = bringPos
+                            existing.BodyGyro.CFrame = CFrame.new(rootPart.Position, bringPos)
+                        end
+                    end
+                end
+
+                -- Xóa những quái không còn trong danh sách (đã chết hoặc ra xa)
+                local currentSet = {}
+                for _, rp in ipairs(cachedMobList) do
+                    if rp then currentSet[rp] = true end
+                end
+                for rp, data in pairs(activeBring) do
+                    if not currentSet[rp] then
+                        data.BodyPos:Destroy()
+                        data.BodyGyro:Destroy()
+                        activeBring[rp] = nil
+                    end
+                end
+            end)
+        else
+            -- Tắt Bring Mob
+            if bringConn then bringConn:Disconnect() end
+            -- Hủy tất cả BodyPosition/BodyGyro đã tạo
+            for rp, data in pairs(activeBring) do
+                if data.BodyPos then data.BodyPos:Destroy() end
+                if data.BodyGyro then data.BodyGyro:Destroy() end
+            end
+            activeBring = {}
+        end
+    end
+})
+
+Rayfield:Notify({
+    Title = "Fly & Aura",
+    Content = "Đã load thành công! Fly (bay tới quái, cao 25), Bring Mob (kéo tối đa 6 con).",
+    Duration = 3,
+    Image = 4483362458,
+})
