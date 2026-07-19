@@ -1,0 +1,184 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Fly Quái Mượt",
+    LoadingTitle = "Fly Quái",
+    LoadingSubtitle = "By Obii (Fixed)",
+    Theme = "Default",
+})
+
+local Tab = Window:CreateTab("Bay", 4483362458)
+local player = game.Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+-- Biến quản lý
+local flyLoop, noclipLoop
+local currentTarget = nil       
+local speedVal = 310            
+local heightAbove = 25          
+local isFlyActive = false       
+
+local bodyPos, bodyGyro
+
+-- ================= CACHE QUÁI (TỐI ƯU HÓA) =================
+-- Dùng task.spawn thay vì Heartbeat để có thể dùng task.wait() an toàn
+task.spawn(function()
+    while task.wait(0.2) do
+        local char = player.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        if not hrp then 
+            currentTarget = nil
+            continue 
+        end
+
+        local nearest, nearDist = nil, math.huge
+        
+        -- Tối ưu: Ưu tiên tìm trong thư mục Enemies (Blox Fruits hay dùng)
+        -- Nếu không có thì mới tìm trong workspace
+        local searchFolder = workspace:FindFirstChild("Enemies") and workspace.Enemies:GetChildren() or workspace:GetChildren()
+
+        for _, obj in ipairs(searchFolder) do
+            if obj:IsA("Model") and obj ~= char then
+                -- Lọc tên quái [Lv.]
+                if string.find(obj.Name, "%[Lv") and string.find(obj.Name, "%]") then
+                    local hum = obj:FindFirstChildWhichIsA("Humanoid")
+                    local root = obj:FindFirstChild("HumanoidRootPart")
+                    
+                    if hum and root and hum.Health > 0 then
+                        local d = (hrp.Position - root.Position).Magnitude
+                        if d < nearDist then
+                            nearest = root
+                            nearDist = d
+                        end
+                    end
+                end
+            end
+        end
+        
+        currentTarget = nearest
+        -- Comment dòng in ra để đỡ lag console nhé
+        -- if nearest then
+        --     print("[Fly] Mục tiêu: " .. nearest.Parent.Name .. " | Khoảng cách: " .. math.floor(nearDist))
+        -- end
+    end
+end)
+
+-- ================= SPEED SLIDER =================
+Tab:CreateSlider({
+    Name = "Tốc độ",
+    Range = {50, 600},
+    Increment = 10,
+    Suffix = "stud/s",
+    CurrentValue = 310,
+    Flag = "SpeedFly",
+    Callback = function(val)
+        speedVal = val
+    end
+})
+
+-- ================= TOGGLE FLY =================
+Tab:CreateToggle({
+    Name = "Bật Bay",
+    CurrentValue = false,
+    Flag = "FlyToggle",
+    Callback = function(val)
+        local char = player.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        local hum = char and char:FindFirstChild("Humanoid")
+        
+        isFlyActive = val
+
+        if isFlyActive then
+            if not hrp or not hum then return end
+            
+            -- BẬT BAY
+            hum.PlatformStand = true
+
+            -- Dọn dẹp BodyMovers cũ nếu có (chống lỗi tạo đúp)
+            if hrp:FindFirstChild("FlyBodyPos") then hrp.FlyBodyPos:Destroy() end
+            if hrp:FindFirstChild("FlyBodyGyro") then hrp.FlyBodyGyro:Destroy() end
+
+            bodyPos = Instance.new("BodyPosition")
+            bodyPos.Name = "FlyBodyPos"
+            bodyPos.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+            bodyPos.P = 3000           
+            bodyPos.D = 500
+            bodyPos.Position = hrp.Position  
+            bodyPos.Parent = hrp
+
+            bodyGyro = Instance.new("BodyGyro")
+            bodyGyro.Name = "FlyBodyGyro"
+            bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+            bodyGyro.P = 3000
+            bodyGyro.D = 100
+            bodyGyro.CFrame = hrp.CFrame
+            bodyGyro.Parent = hrp
+
+            -- Noclip
+            noclipLoop = RunService.Stepped:Connect(function()
+                if not isFlyActive then return end
+                if player.Character then
+                    for _, p in ipairs(player.Character:GetDescendants()) do
+                        if p:IsA("BasePart") and p.CanCollide then 
+                            p.CanCollide = false 
+                        end
+                    end
+                end
+            end)
+
+            -- Vòng lặp bay
+            flyLoop = RunService.Heartbeat:Connect(function(dt)
+                if not isFlyActive then return end
+                
+                local c = player.Character
+                local h = c and c:FindFirstChild("HumanoidRootPart")
+                local hHum = c and c:FindFirstChild("Humanoid")
+                
+                -- Nếu nhân vật chết thì tự tắt
+                if not h or not hHum or hHum.Health <= 0 then return end
+                if not bodyPos then return end
+
+                local target = currentTarget
+                if target and target.Parent and target.Parent:FindFirstChildWhichIsA("Humanoid") and target.Parent:FindFirstChildWhichIsA("Humanoid").Health > 0 then
+                    local targetPos = target.Position + Vector3.new(0, heightAbove, 0)
+                    local delta = targetPos - h.Position
+                    local dist = delta.Magnitude
+
+                    local moveSpeed = speedVal
+                    if dist < 15 then
+                        moveSpeed = math.max(20, speedVal * (dist / 15)) 
+                    end
+
+                    if dist > 1 then
+                        bodyPos.Position = h.Position + delta.Unit * math.min(moveSpeed * dt, dist)
+                        -- Xoay mặt về phía quái nhưng giữ thăng bằng
+                        bodyGyro.CFrame = CFrame.new(h.Position, Vector3.new(target.Position.X, h.Position.Y, target.Position.Z))
+                    else
+                        bodyPos.Position = targetPos 
+                    end
+                else
+                    bodyPos.Position = h.Position
+                end
+            end)
+        else
+            -- TẮT BAY
+            if flyLoop then flyLoop:Disconnect() flyLoop = nil end
+            if noclipLoop then noclipLoop:Disconnect() noclipLoop = nil end
+
+            if bodyPos then bodyPos:Destroy() bodyPos = nil end
+            if bodyGyro then bodyGyro:Destroy() bodyGyro = nil end
+
+            if hum then
+                hum.PlatformStand = false
+            end
+            print("[Fly] Đã tắt bay.")
+        end
+    end
+})
+
+Rayfield:Notify({
+    Title = "Sẵn Sàng",
+    Content = "Đã fix lỗi sụt FPS. Bật để bay tới quái nhé!",
+    Duration = 5,
+    Image = 4483362458,
+})
