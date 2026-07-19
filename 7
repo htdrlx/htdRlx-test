@@ -1,0 +1,132 @@
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "Fly & Aura",
+    SubTitle = "By Obii",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(400, 300),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.RightControl
+})
+
+local Tab = Window:AddTab({ Title = "Main", Icon = "zap" })
+local Options = Fluent.Options
+local player = game.Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local flyConn, auraConn
+
+-- ========================
+-- BAY TÁCH CAM GIẬT GIẬT
+-- ========================
+
+Tab:AddToggle("FlyGiatGiat", {
+    Title = "Fly Tách Cam Giật",
+    Description = "Bay giật giật đến gần quái, tách camera",
+    Default = false
+})
+
+Options.FlyGiatGiat:OnChanged(function()
+    local char = player.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    if Options.FlyGiatGiat.Value then
+        workspace.CurrentCamera.CameraType = Enum.CameraType.Scriptable
+        local savedCam = workspace.CurrentCamera.CFrame
+
+        local bv = Instance.new("BodyVelocity")
+        bv.Name = "FlyBV"
+        bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+        bv.Velocity = Vector3.zero
+        bv.Parent = hrp
+
+        -- Tìm quái gần nhất
+        local function getNearestMob()
+            local nearest, dist = nil, math.huge
+            for _, v in ipairs(workspace:GetDescendants()) do
+                if v:IsA("Model") and v ~= char and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") then
+                    local d = (hrp.Position - v.HumanoidRootPart.Position).Magnitude
+                    if d < dist then
+                        nearest = v.HumanoidRootPart
+                        dist = d
+                    end
+                end
+            end
+            return nearest
+        end
+
+        flyConn = RunService.RenderStepped:Connect(function()
+            if not hrp or not hrp:FindFirstChild("FlyBV") then return end
+            local target = getNearestMob()
+            if target then
+                local dir = (target.Position - hrp.Position).Unit
+                -- Giật ngẫu nhiên
+                local shake = Vector3.new(
+                    math.random(-3, 3),
+                    math.random(-1, 1),
+                    math.random(-3, 3)
+                )
+                hrp.FlyBV.Velocity = (dir * 80) + shake
+            end
+            -- Giữ camera cố định
+            workspace.CurrentCamera.CFrame = savedCam
+        end)
+    else
+        if flyConn then flyConn:Disconnect() end
+        if hrp:FindFirstChild("FlyBV") then hrp.FlyBV:Destroy() end
+        workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
+    end
+end)
+
+-- ========================
+-- ATTACK AURA
+-- ========================
+
+Tab:AddSlider("AuraRadius", {
+    Title = "Aura Radius",
+    Description = "Bán kính tấn công",
+    Default = 15,
+    Min = 5,
+    Max = 60,
+    Rounding = 0,
+})
+
+Tab:AddToggle("AttackAura", {
+    Title = "Attack Aura",
+    Description = "Tự động tấn công quái trong phạm vi",
+    Default = false
+})
+
+Options.AttackAura:OnChanged(function()
+    if Options.AttackAura.Value then
+        auraConn = RunService.Heartbeat:Connect(function()
+            local char = player.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            if not hrp then return end
+
+            for _, v in ipairs(workspace:GetDescendants()) do
+                if v:IsA("Model") and v ~= char then
+                    local hum = v:FindFirstChild("Humanoid")
+                    local mobHRP = v:FindFirstChild("HumanoidRootPart")
+                    if hum and mobHRP and hum.Health > 0 then
+                        local dist = (hrp.Position - mobHRP.Position).Magnitude
+                        if dist <= Options.AuraRadius.Value then
+                            hum:TakeDamage(10)
+                        end
+                    end
+                end
+            end
+        end)
+    else
+        if auraConn then auraConn:Disconnect() end
+    end
+end)
+
+Window:SelectTab(1)
+
+Fluent:Notify({
+    Title = "Fly & Aura",
+    Content = "Đã load thành công!",
+    Duration = 3
+})
