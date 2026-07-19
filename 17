@@ -1,0 +1,199 @@
+-- Script Fly & Aura cho Blox Fruits (đã fix lỗi tìm quái)
+-- Dùng CFrame Fly (không cần BodyVelocity), Bring Mob dùng BodyPosition (cần Unlock Script)
+
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Fly & Aura",
+    LoadingTitle = "Fly & Aura",
+    LoadingSubtitle = "By Obii",
+    Theme = "Default",
+})
+
+local Tab = Window:CreateTab("Main", 4483362458)
+local player = game.Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+local flyConn, noclipConn, bringConn, cacheConn
+local cachedMob = nil
+local cachedMobList = {}
+local cacheTimer = 0
+local speedVal = 310
+local activeBring = {}
+
+-- ================= CACHE QUÁI (ĐÃ SỬA TÌM ĐỆ QUY) =================
+cacheConn = RunService.Heartbeat:Connect(function(dt)
+    cacheTimer += dt
+    if cacheTimer < 0.15 then return end  -- 0.15s cập nhật 1 lần
+    cacheTimer = 0
+
+    local char = player.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then
+        cachedMob = nil
+        cachedMobList = {}
+        return
+    end
+
+    local mobs = {}
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("Model") and obj ~= char then
+            -- Tìm đệ quy Humanoid và HumanoidRootPart (true = duyệt cả con cháu)
+            local hum = obj:FindFirstChildWhichIsA("Humanoid", true)
+            local root = obj:FindFirstChild("HumanoidRootPart", true)
+            if hum and root and hum.Health > 0 then
+                -- Lọc quái có [Lv...] (tránh NPC)
+                if string.find(obj.Name, "%[Lv") and string.find(obj.Name, "%]") then
+                    local d = (hrp.Position - root.Position).Magnitude
+                    table.insert(mobs, {RootPart = root, Distance = d})
+                end
+            end
+        end
+    end
+
+    table.sort(mobs, function(a, b) return a.Distance < b.Distance end)
+    local list = {}
+    for i = 1, math.min(6, #mobs) do
+        list[i] = mobs[i].RootPart
+    end
+    cachedMobList = list
+    cachedMob = list[1]
+end)
+
+-- ================= SPEED SLIDER =================
+Tab:CreateSlider({
+    Name = "Speed Tween",
+    Range = {50, 500},
+    Increment = 10,
+    Suffix = "Speed",
+    CurrentValue = 310,
+    Flag = "SpeedTween",
+    Callback = function(val)
+        speedVal = val
+    end
+})
+
+-- ================= TOGGLE FLY =================
+Tab:CreateToggle({
+    Name = "Fly",
+    CurrentValue = false,
+    Flag = "FlyToggle",
+    Callback = function(val)
+        local char = player.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        local hum = char and char:FindFirstChild("Humanoid")
+        if not hrp or not hum then return end
+
+        if val then
+            hum.PlatformStand = true
+
+            -- Noclip
+            noclipConn = RunService.Stepped:Connect(function()
+                local c = player.Character
+                if c then
+                    for _, p in ipairs(c:GetDescendants()) do
+                        if p:IsA("BasePart") then p.CanCollide = false end
+                    end
+                end
+            end)
+
+            -- Fly CFrame (mượt, không cần BodyVelocity)
+            flyConn = RunService.Heartbeat:Connect(function(dt)
+                local h = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                if not h then return end
+
+                local target = cachedMob
+                if target then
+                    local targetPos = target.Position + Vector3.new(0, 25, 0)
+                    local dir = targetPos - h.Position
+                    if dir.Magnitude > 3 then
+                        local move = dir.Unit * math.min(speedVal * dt, dir.Magnitude)
+                        h.CFrame = h.CFrame + move
+                    end
+                end
+            end)
+        else
+            if flyConn then flyConn:Disconnect() end
+            if noclipConn then noclipConn:Disconnect() end
+            hum.PlatformStand = false
+            local c = player.Character
+            if c then
+                for _, p in ipairs(c:GetDescendants()) do
+                    if p:IsA("BasePart") then p.CanCollide = true end
+                end
+            end
+        end
+    end
+})
+
+-- ================= TOGGLE BRING MOB =================
+Tab:CreateToggle({
+    Name = "Bring Mob (Max 6)",
+    CurrentValue = false,
+    Flag = "BringToggle",
+    Callback = function(val)
+        local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
+
+        if val then
+            bringConn = RunService.Heartbeat:Connect(function()
+                local h = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                if not h then return end
+                local bringPos = h.Position + Vector3.new(0, 3, 0)
+
+                for _, root in ipairs(cachedMobList) do
+                    if root and root.Parent then
+                        local data = activeBring[root]
+                        if not data then
+                            local bp = Instance.new("BodyPosition")
+                            bp.MaxForce = Vector3.new(1e6, 1e6, 1e6)
+                            bp.P = 10000
+                            bp.D = 1000
+                            bp.Position = bringPos
+                            bp.Parent = root
+
+                            local bg = Instance.new("BodyGyro")
+                            bg.MaxTorque = Vector3.new(1e6, 1e6, 1e6)
+                            bg.P = 10000
+                            bg.D = 100
+                            bg.CFrame = CFrame.new(root.Position, bringPos)
+                            bg.Parent = root
+
+                            activeBring[root] = {BodyPos = bp, BodyGyro = bg}
+                        else
+                            data.BodyPos.Position = bringPos
+                            data.BodyGyro.CFrame = CFrame.new(root.Position, bringPos)
+                        end
+                    end
+                end
+
+                -- Dọn quái đã chết / không còn trong danh sách
+                local current = {}
+                for _, r in ipairs(cachedMobList) do
+                    if r then current[r] = true end
+                end
+                for r, d in pairs(activeBring) do
+                    if not current[r] then
+                        d.BodyPos:Destroy()
+                        d.BodyGyro:Destroy()
+                        activeBring[r] = nil
+                    end
+                end
+            end)
+        else
+            if bringConn then bringConn:Disconnect() end
+            for r, d in pairs(activeBring) do
+                d.BodyPos:Destroy()
+                d.BodyGyro:Destroy()
+            end
+            activeBring = {}
+        end
+    end
+})
+
+Rayfield:Notify({
+    Title = "Fly & Aura",
+    Content = "Đã load! Fly (CFrame) bay đến quái [Lv...], Bring kéo tối đa 6 con. Hãy bật Unlock Script nếu Bring không kéo được.",
+    Duration = 5,
+    Image = 4483362458,
+})
