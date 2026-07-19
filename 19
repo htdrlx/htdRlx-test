@@ -1,0 +1,151 @@
+-- Fly Blox Fruits (mượt, không giật, chỉ nhắm quái có [Lv.])
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Fly Quái",
+    LoadingTitle = "Fly Quái",
+    LoadingSubtitle = "By Obii",
+    Theme = "Default",
+})
+
+local Tab = Window:CreateTab("Main", 4483362458)
+local player = game.Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+local flyConn, noclipConn, cacheConn
+local currentTarget = nil
+local currentTargetName = "Không có"
+local speedVal = 310
+local cacheTimer = 0
+
+-- ================= CACHE QUÁI (CHỈ LẤY [Lv.]) =================
+cacheConn = RunService.Heartbeat:Connect(function(dt)
+    cacheTimer += dt
+    if cacheTimer < 0.2 then return end
+    cacheTimer = 0
+
+    local char = player.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then
+        currentTarget = nil
+        currentTargetName = "Không có"
+        return
+    end
+
+    local nearest, nearDist = nil, math.huge
+    local nearestName = ""
+
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("Model") and obj ~= char then
+            -- Tìm đệ quy để chắc chắn lấy được Humanoid/RootPart dù nằm sâu bên trong
+            local hum = obj:FindFirstChildWhichIsA("Humanoid", true)
+            local root = obj:FindFirstChild("HumanoidRootPart", true)
+            if hum and root and hum.Health > 0 then
+                -- Chỉ chấp nhận mô hình có tên chứa [Lv...]
+                if string.find(obj.Name, "%[Lv") and string.find(obj.Name, "%]") then
+                    local d = (hrp.Position - root.Position).Magnitude
+                    if d < nearDist then
+                        nearest = root
+                        nearDist = d
+                        nearestName = obj.Name
+                    end
+                end
+            end
+        end
+    end
+
+    -- Cập nhật mục tiêu và in ra nếu có thay đổi
+    if nearest ~= currentTarget then
+        currentTarget = nearest
+        currentTargetName = nearest and nearestName or "Không có"
+        if nearest then
+            print("[Fly] Mục tiêu mới: " .. currentTargetName .. " | Khoảng cách: " .. math.floor(nearDist))
+        else
+            print("[Fly] Không tìm thấy quái [Lv.] nào xung quanh.")
+        end
+    end
+end)
+
+-- ================= SPEED SLIDER =================
+Tab:CreateSlider({
+    Name = "Speed",
+    Range = {100, 600},
+    Increment = 10,
+    Suffix = "stud/s",
+    CurrentValue = 310,
+    Flag = "SpeedFly",
+    Callback = function(val)
+        speedVal = val
+    end
+})
+
+-- ================= TOGGLE FLY =================
+Tab:CreateToggle({
+    Name = "Fly",
+    CurrentValue = false,
+    Flag = "FlyToggle",
+    Callback = function(val)
+        local char = player.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        local hum = char and char:FindFirstChild("Humanoid")
+        if not hrp or not hum then return end
+
+        if val then
+            hum.PlatformStand = true
+            hum.AutoRotate = false  -- giữ hướng nhìn
+
+            -- Noclip
+            noclipConn = RunService.Stepped:Connect(function()
+                local c = player.Character
+                if c then
+                    for _, p in ipairs(c:GetDescendants()) do
+                        if p:IsA("BasePart") then p.CanCollide = false end
+                    end
+                end
+            end)
+
+            -- Fly bằng CFrame (không giật)
+            flyConn = RunService.Heartbeat:Connect(function(dt)
+                local h = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                if not h then return end
+
+                local target = currentTarget
+                if target and target.Parent and target.Parent:FindFirstChildWhichIsA("Humanoid") and target.Parent:FindFirstChildWhichIsA("Humanoid").Health > 0 then
+                    local targetPos = target.Position + Vector3.new(0, 25, 0)
+                    local delta = targetPos - h.Position
+                    local distance = delta.Magnitude
+
+                    -- Tốc độ thực tế: càng gần càng giảm để không vọt lố
+                    local maxStep = speedVal * dt
+                    local step = math.min(maxStep, distance)  -- không đi quá mục tiêu
+
+                    if distance > 2 then
+                        h.CFrame = h.CFrame + (delta.Unit * step)
+                    end
+                    -- Nếu đã rất gần (<=2 stud) thì đứng yên, không cố gắng "hút" thêm nữa
+                end
+            end)
+        else
+            -- Tắt Fly
+            if flyConn then flyConn:Disconnect() end
+            if noclipConn then noclipConn:Disconnect() end
+            if hum then
+                hum.PlatformStand = false
+                hum.AutoRotate = true
+            end
+            local c = player.Character
+            if c then
+                for _, p in ipairs(c:GetDescendants()) do
+                    if p:IsA("BasePart") then p.CanCollide = true end
+                end
+            end
+        end
+    end
+})
+
+Rayfield:Notify({
+    Title = "Fly Quái",
+    Content = "Bay mượt, không giật. Mở F9 > Output để xem mục tiêu.",
+    Duration = 5,
+    Image = 4483362458,
+})
