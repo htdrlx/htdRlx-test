@@ -1,0 +1,143 @@
+-- Script Fly đơn giản cho Blox Fruits (đã fix lỗi không tìm thấy quái)
+-- Chỉ có Fly, không Bring Mob. Dùng CFrame, tương thích mọi executor.
+
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Fly",
+    LoadingTitle = "Fly",
+    LoadingSubtitle = "By Obii",
+    Theme = "Default",
+})
+
+local Tab = Window:CreateTab("Main", 4483362458)
+local player = game.Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+local flyConn, noclipConn, cacheConn
+local cachedMob = nil
+local cacheTimer = 0
+local speedVal = 310
+
+-- Cache quái (ưu tiên tên có [Lv, fallback lấy tất cả nếu không có)
+cacheConn = RunService.Heartbeat:Connect(function(dt)
+    cacheTimer += dt
+    if cacheTimer < 0.15 then return end
+    cacheTimer = 0
+
+    local char = player.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then
+        cachedMob = nil
+        return
+    end
+
+    local mobs = {}
+    local allMobs = {}  -- fallback
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("Model") and obj ~= char then
+            local hum = obj:FindFirstChildWhichIsA("Humanoid", true)
+            local root = obj:FindFirstChild("HumanoidRootPart", true)
+            if hum and root and hum.Health > 0 then
+                local d = (hrp.Position - root.Position).Magnitude
+                local data = {RootPart = root, Distance = d, Name = obj.Name}
+                table.insert(allMobs, data)
+                if string.find(obj.Name, "%[Lv") and string.find(obj.Name, "%]") then
+                    table.insert(mobs, data)
+                end
+            end
+        end
+    end
+
+    -- Nếu không có quái [Lv] thì dùng toàn bộ (trừ NPC thường) để test
+    if #mobs == 0 then
+        mobs = allMobs
+        -- In ra debug để biết có những gì xung quanh
+        if #mobs > 0 then
+            print("Không thấy quái [Lv]. Danh sách các Humanoid gần nhất:")
+            for i = 1, math.min(5, #mobs) do
+                print("  " .. mobs[i].Name .. " - Khoảng cách: " .. math.floor(mobs[i].Distance))
+            end
+        else
+            print("Không tìm thấy bất kỳ Humanoid nào trong workspace.")
+        end
+    end
+
+    table.sort(mobs, function(a, b) return a.Distance < b.Distance end)
+    cachedMob = mobs[1] and mobs[1].RootPart or nil
+end)
+
+-- Slider tốc độ
+Tab:CreateSlider({
+    Name = "Speed",
+    Range = {50, 500},
+    Increment = 10,
+    Suffix = "stud/s",
+    CurrentValue = 310,
+    Flag = "SpeedFly",
+    Callback = function(val)
+        speedVal = val
+    end
+})
+
+-- Toggle Fly
+Tab:CreateToggle({
+    Name = "Fly",
+    CurrentValue = false,
+    Flag = "FlyToggle",
+    Callback = function(val)
+        local char = player.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        local hum = char and char:FindFirstChild("Humanoid")
+        if not hrp or not hum then return end
+
+        if val then
+            -- Bật PlatformStand để giữ thăng bằng
+            hum.PlatformStand = true
+
+            -- Noclip
+            noclipConn = RunService.Stepped:Connect(function()
+                local c = player.Character
+                if c then
+                    for _, p in ipairs(c:GetDescendants()) do
+                        if p:IsA("BasePart") then p.CanCollide = false end
+                    end
+                end
+            end)
+
+            -- Fly loop (CFrame)
+            flyConn = RunService.Heartbeat:Connect(function(dt)
+                local h = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                if not h then return end
+
+                local target = cachedMob
+                if target then
+                    local targetPos = target.Position + Vector3.new(0, 25, 0)
+                    local dir = targetPos - h.Position
+                    if dir.Magnitude > 3 then
+                        local step = dir.Unit * math.min(speedVal * dt, dir.Magnitude)
+                        h.CFrame = h.CFrame + step
+                    end
+                end
+            end)
+        else
+            -- Tắt Fly
+            if flyConn then flyConn:Disconnect() end
+            if noclipConn then noclipConn:Disconnect() end
+            hum.PlatformStand = false
+            local c = player.Character
+            if c then
+                for _, p in ipairs(c:GetDescendants()) do
+                    if p:IsA("BasePart") then p.CanCollide = true end
+                end
+            end
+        end
+    end
+})
+
+Rayfield:Notify({
+    Title = "Fly",
+    Content = "Đã load! Bật Fly để bay đến quái gần nhất (ưu tiên [Lv]).",
+    Duration = 5,
+    Image = 4483362458,
+})
