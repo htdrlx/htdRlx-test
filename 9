@@ -1,0 +1,209 @@
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "Fly & Aura",
+    SubTitle = "By Obii",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(400, 320),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.RightControl
+})
+
+local Tab = Window:AddTab({ Title = "Main", Icon = "zap" })
+local Options = Fluent.Options
+local player = game.Players.LocalPlayer
+local RS = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local flyConn, auraConn, noclipConn
+
+-- Tìm quái gần nhất
+local function getNearestMob()
+    local char = player.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return nil end
+    local nearest, dist = nil, math.huge
+    for _, v in ipairs(workspace:GetDescendants()) do
+        if v:IsA("Model") and v ~= char
+            and v:FindFirstChild("Humanoid")
+            and v:FindFirstChild("HumanoidRootPart")
+            and v.Humanoid.Health > 0 then
+            local d = (hrp.Position - v.HumanoidRootPart.Position).Magnitude
+            if d < dist then
+                nearest = v.HumanoidRootPart
+                dist = d
+            end
+        end
+    end
+    return nearest
+end
+
+-- ========================
+-- SPEED TWEEN
+-- ========================
+
+Tab:AddSlider("SpeedTween", {
+    Title = "Speed Tween",
+    Description = "Tốc độ bay đến quái (mặc định 310)",
+    Default = 310,
+    Min = 50,
+    Max = 500,
+    Rounding = 0,
+})
+
+-- ========================
+-- FLY GIẬT GIẬT
+-- ========================
+
+Tab:AddToggle("FlyGiatGiat", {
+    Title = "Fly Giật Giật",
+    Description = "Bay xuyên tường, lơ lửng trên quái 30 studs, giật giật",
+    Default = false
+})
+
+Options.FlyGiatGiat:OnChanged(function()
+    local char = player.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    if Options.FlyGiatGiat.Value then
+        -- Noclip xuyên tường
+        noclipConn = RunService.Stepped:Connect(function()
+            local c = player.Character
+            if c then
+                for _, p in ipairs(c:GetDescendants()) do
+                    if p:IsA("BasePart") then
+                        p.CanCollide = false
+                    end
+                end
+            end
+        end)
+
+        -- BodyPosition để hover đúng vị trí
+        local bp = Instance.new("BodyPosition")
+        bp.Name = "FlyBP"
+        bp.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+        bp.D = 500
+        bp.P = Options.SpeedTween.Value * 30
+        bp.Position = hrp.Position
+        bp.Parent = hrp
+
+        local bg = Instance.new("BodyGyro")
+        bg.Name = "FlyGyro"
+        bg.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
+        bg.D = 200
+        bg.Parent = hrp
+
+        local shake = 0
+        flyConn = RunService.RenderStepped:Connect(function()
+            if not hrp or not hrp:FindFirstChild("FlyBP") then return end
+            shake = shake + 1
+
+            -- Giật giật bằng sin/cos
+            local shakeX = math.sin(shake * 0.7) * 5
+            local shakeZ = math.cos(shake * 0.5) * 5
+
+            local target = getNearestMob()
+            if target then
+                -- Bay lơ lửng TRÊN quái 30 studs + giật
+                local targetPos = Vector3.new(
+                    target.Position.X + shakeX,
+                    target.Position.Y + 30,
+                    target.Position.Z + shakeZ
+                )
+                hrp.FlyBP.Position = targetPos
+                hrp.FlyBP.P = Options.SpeedTween.Value * 30
+
+                -- Nhìn về hướng quái
+                bg.CFrame = CFrame.new(hrp.Position, Vector3.new(
+                    target.Position.X,
+                    hrp.Position.Y,
+                    target.Position.Z
+                ))
+            end
+        end)
+    else
+        if flyConn then flyConn:Disconnect() end
+        if noclipConn then noclipConn:Disconnect() end
+        if hrp:FindFirstChild("FlyBP") then hrp.FlyBP:Destroy() end
+        if hrp:FindFirstChild("FlyGyro") then hrp.FlyGyro:Destroy() end
+        -- Bật lại collision
+        local c = player.Character
+        if c then
+            for _, p in ipairs(c:GetDescendants()) do
+                if p:IsA("BasePart") then p.CanCollide = true end
+            end
+        end
+    end
+end)
+
+-- ========================
+-- ATTACK AURA
+-- ========================
+
+Tab:AddSlider("AuraRadius", {
+    Title = "Aura Radius",
+    Description = "Bán kính tấn công aura",
+    Default = 15,
+    Min = 5,
+    Max = 60,
+    Rounding = 0,
+})
+
+Tab:AddToggle("AttackAura", {
+    Title = "Attack Aura",
+    Description = "Tự động tấn công quái trong phạm vi",
+    Default = false
+})
+
+Options.AttackAura:OnChanged(function()
+    if Options.AttackAura.Value then
+        auraConn = RunService.Heartbeat:Connect(function()
+            local char = player.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            if not hrp then return end
+
+            local nearest, nearDist = nil, math.huge
+            for _, v in ipairs(workspace:GetDescendants()) do
+                if v:IsA("Model") and v ~= char then
+                    local hum = v:FindFirstChild("Humanoid")
+                    local mobHRP = v:FindFirstChild("HumanoidRootPart")
+                    if hum and mobHRP and hum.Health > 0 then
+                        local dist = (hrp.Position - mobHRP.Position).Magnitude
+                        if dist <= Options.AuraRadius.Value and dist < nearDist then
+                            nearest = mobHRP
+                            nearDist = dist
+                        end
+                    end
+                end
+            end
+
+            if nearest then
+                -- Xoay nhân vật về hướng quái
+                hrp.CFrame = CFrame.new(
+                    hrp.Position,
+                    Vector3.new(nearest.Position.X, hrp.Position.Y, nearest.Position.Z)
+                )
+                -- Dùng tool đang cầm
+                local tool = char:FindFirstChildOfClass("Tool")
+                if tool and tool:FindFirstChild("Handle") then
+                    pcall(function() tool:Activate() end)
+                end
+                -- Fire remote M1
+                pcall(function()
+                    RS.Remotes.Combat:FireServer("M1", nearest.Parent)
+                end)
+            end
+        end)
+    else
+        if auraConn then auraConn:Disconnect() end
+    end
+end)
+
+Window:SelectTab(1)
+
+Fluent:Notify({
+    Title = "Fly & Aura",
+    Content = "Đã load thành công!",
+    Duration = 3
+})
