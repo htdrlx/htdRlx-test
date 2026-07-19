@@ -1,0 +1,183 @@
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "Fly & Aura",
+    SubTitle = "By Obii",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(400, 320),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.RightControl
+})
+
+local Tab = Window:AddTab({ Title = "Main", Icon = "zap" })
+local Options = Fluent.Options
+local player = game.Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+local flyConn, auraConn, noclipConn, cacheConn
+local cachedMob = nil
+
+-- Cache mob mỗi 0.5s
+local cacheTimer = 0
+cacheConn = RunService.Heartbeat:Connect(function(dt)
+    cacheTimer = cacheTimer + dt
+    if cacheTimer < 0.5 then return end
+    cacheTimer = 0
+    local char = player.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then cachedMob = nil return end
+    local nearest, nearDist = nil, math.huge
+    for _, v in ipairs(workspace:GetChildren()) do
+        if v:IsA("Model") and v ~= char
+            and v:FindFirstChildWhichIsA("Humanoid")
+            and v:FindFirstChild("HumanoidRootPart")
+            and v:FindFirstChildWhichIsA("Humanoid").Health > 0 then
+            local d = (hrp.Position - v.HumanoidRootPart.Position).Magnitude
+            if d < nearDist then
+                nearest = v.HumanoidRootPart
+                nearDist = d
+            end
+        end
+    end
+    cachedMob = nearest
+end)
+
+-- ========================
+-- SPEED TWEEN
+-- ========================
+
+Tab:AddSlider("SpeedTween", {
+    Title = "Speed Tween",
+    Description = "Tốc độ bay đến quái (mặc định 310)",
+    Default = 310,
+    Min = 50,
+    Max = 500,
+    Rounding = 0,
+})
+
+-- ========================
+-- FLY
+-- ========================
+
+Tab:AddToggle("FlySmooth", {
+    Title = "Fly",
+    Description = "Bay mượt trên quái 30 studs, xuyên tường",
+    Default = false
+})
+
+Options.FlySmooth:OnChanged(function()
+    local char = player.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    if Options.FlySmooth.Value then
+        -- Noclip xuyên tường
+        noclipConn = RunService.Stepped:Connect(function()
+            local c = player.Character
+            if not c then return end
+            for _, p in ipairs(c:GetDescendants()) do
+                if p:IsA("BasePart") then p.CanCollide = false end
+            end
+        end)
+
+        -- BodyVelocity đơn giản, mượt, cam tự đuổi theo
+        local bv = Instance.new("BodyVelocity")
+        bv.Name = "FlyBV"
+        bv.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+        bv.Velocity = Vector3.zero
+        bv.Parent = hrp
+
+        flyConn = RunService.Heartbeat:Connect(function()
+            local h = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+            if not h or not h:FindFirstChild("FlyBV") then return end
+            local target = cachedMob
+            if not target then
+                h.FlyBV.Velocity = Vector3.zero
+                return
+            end
+            local targetPos = Vector3.new(
+                target.Position.X,
+                target.Position.Y + 30,
+                target.Position.Z
+            )
+            local dir = targetPos - h.Position
+            local dist = dir.Magnitude
+            if dist > 3 then
+                h.FlyBV.Velocity = dir.Unit * Options.SpeedTween.Value
+            else
+                h.FlyBV.Velocity = Vector3.zero
+            end
+        end)
+    else
+        if flyConn then flyConn:Disconnect() end
+        if noclipConn then noclipConn:Disconnect() end
+        if hrp:FindFirstChild("FlyBV") then hrp.FlyBV:Destroy() end
+        local c = player.Character
+        if c then
+            for _, p in ipairs(c:GetDescendants()) do
+                if p:IsA("BasePart") then p.CanCollide = true end
+            end
+        end
+    end
+end)
+
+-- ========================
+-- ATTACK AURA
+-- ========================
+
+Tab:AddSlider("AuraRadius", {
+    Title = "Aura Radius",
+    Description = "Bán kính tấn công aura",
+    Default = 40,
+    Min = 5,
+    Max = 60,
+    Rounding = 0,
+})
+
+Tab:AddToggle("AttackAura", {
+    Title = "Attack Aura",
+    Description = "Tự động đánh võ quái trong phạm vi",
+    Default = false
+})
+
+Options.AttackAura:OnChanged(function()
+    if Options.AttackAura.Value then
+        auraConn = RunService.Heartbeat:Connect(function()
+            local char = player.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            if not hrp then return end
+            local target = cachedMob
+            if not target then return end
+            local dist = (hrp.Position - target.Position).Magnitude
+            if dist <= Options.AuraRadius.Value then
+                -- Xoay về hướng quái
+                hrp.CFrame = CFrame.new(
+                    hrp.Position,
+                    Vector3.new(target.Position.X, hrp.Position.Y, target.Position.Z)
+                )
+                -- Thử mouse1click trước
+                local ok = pcall(function() mouse1click() end)
+                -- Fallback VIM nếu không có mouse1click
+                if not ok then
+                    pcall(function()
+                        local VIM = game:GetService("VirtualInputManager")
+                        VIM:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+                        task.wait(0.05)
+                        VIM:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+                    end)
+                end
+            end
+        end)
+    else
+        if auraConn then auraConn:Disconnect() end
+    end
+end)
+
+Window:SelectTab(1)
+
+Fluent:Notify({
+    Title = "Fly & Aura",
+    Content = "Đã load thành công!",
+    Duration = 3
+})
