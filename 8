@@ -1,0 +1,173 @@
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "Fly & Aura",
+    SubTitle = "By Obii",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(400, 320),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.RightControl
+})
+
+local Tab = Window:AddTab({ Title = "Main", Icon = "zap" })
+local Options = Fluent.Options
+local player = game.Players.LocalPlayer
+local RS = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local flyConn, auraConn
+
+-- ========================
+-- BAY GIẬT GIẬT (CAM LAG THEO)
+-- ========================
+
+Tab:AddSlider("SpeedTween", {
+    Title = "Speed Tween",
+    Description = "Tốc độ bay đến quái (mặc định 310)",
+    Default = 310,
+    Min = 50,
+    Max = 500,
+    Rounding = 0,
+})
+
+Tab:AddToggle("FlyGiatGiat", {
+    Title = "Fly Giật Giật",
+    Description = "Bay giật giật đến quái gần nhất, cam lag theo kiểu premium",
+    Default = false
+})
+
+Options.FlyGiatGiat:OnChanged(function()
+    local char = player.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    if Options.FlyGiatGiat.Value then
+        -- Tắt gravity
+        local bg = Instance.new("BodyGyro")
+        bg.Name = "FlyGyro"
+        bg.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
+        bg.D = 100
+        bg.Parent = hrp
+
+        local bv = Instance.new("BodyVelocity")
+        bv.Name = "FlyBV"
+        bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+        bv.Velocity = Vector3.zero
+        bv.Parent = hrp
+
+        local function getNearestMob()
+            local nearest, dist = nil, math.huge
+            for _, v in ipairs(workspace:GetDescendants()) do
+                if v:IsA("Model") and v ~= char
+                    and v:FindFirstChild("Humanoid")
+                    and v:FindFirstChild("HumanoidRootPart")
+                    and v.Humanoid.Health > 0 then
+                    local d = (hrp.Position - v.HumanoidRootPart.Position).Magnitude
+                    if d < dist then
+                        nearest = v.HumanoidRootPart
+                        dist = d
+                    end
+                end
+            end
+            return nearest
+        end
+
+        local shake = 0
+        flyConn = RunService.RenderStepped:Connect(function()
+            if not hrp or not hrp:FindFirstChild("FlyBV") then return end
+            local target = getNearestMob()
+            if target then
+                local dir = (target.Position - hrp.Position).Unit
+                local speed = Options.SpeedTween.Value
+
+                -- Giật bằng cách thay đổi hướng nhanh
+                shake = shake + 1
+                local shakeOffset = Vector3.new(
+                    math.sin(shake * 0.8) * 6,
+                    math.cos(shake * 0.5) * 3,
+                    math.sin(shake * 0.6) * 6
+                )
+
+                -- Nếu gần rồi thì giảm tốc
+                local dist = (hrp.Position - target.Position).Magnitude
+                if dist < 8 then
+                    bv.Velocity = Vector3.zero
+                else
+                    bv.Velocity = (dir * speed) + shakeOffset
+                end
+
+                -- Cam tự lag theo vì nhân vật giật nhanh
+                bg.CFrame = CFrame.new(hrp.Position, target.Position)
+            else
+                bv.Velocity = Vector3.zero
+            end
+        end)
+    else
+        if flyConn then flyConn:Disconnect() end
+        if hrp:FindFirstChild("FlyBV") then hrp.FlyBV:Destroy() end
+        if hrp:FindFirstChild("FlyGyro") then hrp.FlyGyro:Destroy() end
+    end
+end)
+
+-- ========================
+-- ATTACK AURA
+-- ========================
+
+Tab:AddSlider("AuraRadius", {
+    Title = "Aura Radius",
+    Description = "Bán kính tấn công aura",
+    Default = 15,
+    Min = 5,
+    Max = 60,
+    Rounding = 0,
+})
+
+Tab:AddToggle("AttackAura", {
+    Title = "Attack Aura",
+    Description = "Tự động tấn công quái trong phạm vi",
+    Default = false
+})
+
+Options.AttackAura:OnChanged(function()
+    if Options.AttackAura.Value then
+        auraConn = RunService.Heartbeat:Connect(function()
+            local char = player.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            if not hrp then return end
+
+            local nearest, nearDist = nil, math.huge
+            for _, v in ipairs(workspace:GetDescendants()) do
+                if v:IsA("Model") and v ~= char then
+                    local hum = v:FindFirstChild("Humanoid")
+                    local mobHRP = v:FindFirstChild("HumanoidRootPart")
+                    if hum and mobHRP and hum.Health > 0 then
+                        local dist = (hrp.Position - mobHRP.Position).Magnitude
+                        if dist <= Options.AuraRadius.Value and dist < nearDist then
+                            nearest = mobHRP
+                            nearDist = dist
+                        end
+                    end
+                end
+            end
+
+            if nearest then
+                -- Teleport sát quái rồi dùng M1
+                hrp.CFrame = CFrame.new(nearest.Position + Vector3.new(0, 0, 3))
+                pcall(function()
+                    RS.Remotes.Combat:FireServer("M1", nearest.Parent)
+                end)
+            end
+        end)
+    else
+        if auraConn then auraConn:Disconnect() end
+    end
+end)
+
+Window:SelectTab(1)
+
+Fluent:Notify({
+    Title = "Fly & Aura",
+    Content = "Đã load thành công!",
+    Duration = 3
+})
