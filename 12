@@ -1,0 +1,110 @@
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Fly & Aura",
+    LoadingTitle = "Fly & Aura",
+    LoadingSubtitle = "By Obii",
+    Theme = "Default",
+    DisableRayfieldPrompts = false,
+    DisableBuildWarnings = false,
+})
+
+local Tab = Window:CreateTab("Main", 4483362458)
+local player = game.Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local TS = game:GetService("TweenService")
+
+local flyConn, noclipConn, cacheConn
+local cachedMob = nil
+local cacheTimer = 0
+
+-- Cache mob mỗi 0.5s
+cacheConn = RunService.Heartbeat:Connect(function(dt)
+    cacheTimer = cacheTimer + dt
+    if cacheTimer < 0.5 then return end
+    cacheTimer = 0
+    local char = player.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then cachedMob = nil return end
+    local nearest, nearDist = nil, math.huge
+    for _, v in ipairs(workspace:GetChildren()) do
+        if v:IsA("Model") and v ~= char
+            and v:FindFirstChildWhichIsA("Humanoid")
+            and v:FindFirstChild("HumanoidRootPart")
+            and v:FindFirstChildWhichIsA("Humanoid").Health > 0 then
+            local d = (hrp.Position - v.HumanoidRootPart.Position).Magnitude
+            if d < nearDist then
+                nearest = v.HumanoidRootPart
+                nearDist = d
+            end
+        end
+    end
+    cachedMob = nearest
+end)
+
+-- Speed Slider
+local speedVal = 310
+Tab:CreateSlider({
+    Name = "Speed Tween",
+    Range = {50, 500},
+    Increment = 10,
+    Suffix = "Speed",
+    CurrentValue = 310,
+    Flag = "SpeedTween",
+    Callback = function(val)
+        speedVal = val
+    end
+})
+
+-- Fly Toggle
+Tab:CreateToggle({
+    Name = "Fly",
+    CurrentValue = false,
+    Flag = "FlyToggle",
+    Callback = function(val)
+        local char = player.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
+
+        if val then
+            noclipConn = RunService.Stepped:Connect(function()
+                local c = player.Character
+                if not c then return end
+                for _, p in ipairs(c:GetDescendants()) do
+                    if p:IsA("BasePart") then p.CanCollide = false end
+                end
+            end)
+
+            flyConn = RunService.Heartbeat:Connect(function()
+                local h = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                if not h then return end
+                local target = cachedMob
+                if not target then return end
+                local targetPos = Vector3.new(
+                    target.Position.X,
+                    target.Position.Y + 30,
+                    target.Position.Z
+                )
+                TS:Create(h, TweenInfo.new(0.1, Enum.EasingStyle.Linear), {
+                    CFrame = CFrame.new(targetPos)
+                }):Play()
+            end)
+        else
+            if flyConn then flyConn:Disconnect() end
+            if noclipConn then noclipConn:Disconnect() end
+            local c = player.Character
+            if c then
+                for _, p in ipairs(c:GetDescendants()) do
+                    if p:IsA("BasePart") then p.CanCollide = true end
+                end
+            end
+        end
+    end
+})
+
+Rayfield:Notify({
+    Title = "Fly & Aura",
+    Content = "Đã load thành công!",
+    Duration = 3,
+    Image = 4483362458,
+})
