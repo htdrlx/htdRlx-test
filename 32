@@ -1,0 +1,352 @@
+-- ================== DỊCH VỤ & BIẾN ==================
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
+
+local menuOpen = false
+local autoFarm = false
+local autoFarmThread = nil
+local hoverConn = nil       -- giữ hover liên tục
+local TWEEN_SPEED = 300
+local FLY_HEIGHT = 25
+local ATTACK_RANGE = 5
+local currentTarget = nil
+
+-- ================== 1. NÚT DI ĐỘNG ==================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "MobileToggleGui"
+ScreenGui.ResetOnSpawn = false
+local ok, hui = pcall(gethui)
+ScreenGui.Parent = ok and hui or CoreGui
+
+local ToggleButton = Instance.new("ImageButton")
+ToggleButton.Size = UDim2.new(0, 45, 0, 45)
+ToggleButton.Position = UDim2.new(0, 15, 0, 130)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+ToggleButton.Image = "rbxassetid://10974853372"
+ToggleButton.Parent = ScreenGui
+Instance.new("UICorner", ToggleButton).CornerRadius = UDim.new(0.5, 0)
+local stroke = Instance.new("UIStroke", ToggleButton)
+stroke.Color = Color3.fromRGB(70, 70, 70)
+stroke.Thickness = 1.5
+
+local dragging, dragInput, dragStart, startPos = false, nil, nil, nil
+local isClicking = false
+
+local function updateDrag(input)
+    local delta = input.Position - dragStart
+    ToggleButton.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+ToggleButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true; isClicking = true
+        dragStart = input.Position; startPos = ToggleButton.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+        end)
+    end
+end)
+ToggleButton.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        if (input.Position - dragStart).Magnitude > 5 then isClicking = false end
+        updateDrag(input)
+    end
+end)
+
+local function playTapAnimation()
+    local t = TweenService:Create(ToggleButton, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 50, 0, 50)})
+    t:Play(); t.Completed:Wait()
+    TweenService:Create(ToggleButton, TweenInfo.new(0.1), {Size = UDim2.new(0, 45, 0, 45)}):Play()
+end
+
+local function toggleMenu()
+    playTapAnimation()
+    menuOpen = not menuOpen
+    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.LeftControl, false, game)
+    task.wait()
+    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftControl, false, game)
+end
+ToggleButton.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        if isClicking then toggleMenu() end
+        isClicking = false
+    end
+end)
+
+-- ================== 2. FLUENT UI ==================
+local Window = Fluent:CreateWindow({
+    Title = "Mobile Hub - Banana Cat 🍌",
+    SubTitle = "Auto Farm",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+local Tabs = {
+    Main = Window:AddTab({ Title = "Auto Farm", Icon = "swords" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+}
+local Options = Fluent.Options
+
+-- ================== 3. HELPER ==================
+local function isTargetAlive(model)
+    if not model or not model.Parent then return false end
+    local h = model:FindFirstChildOfClass("Humanoid")
+    return h ~= nil and h.Health > 0
+end
+
+local function getNearestEnemy()
+    local char = player.Character
+    if not char then return nil end
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not root then return nil end
+    local nearest, minDist = nil, math.huge
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("Model") and obj ~= char then
+            local h = obj:FindFirstChildOfClass("Humanoid")
+            local hrp = obj:FindFirstChild("HumanoidRootPart")
+            if h and hrp and h.Health > 0 then
+                local d = (root.Position - hrp.Position).Magnitude
+                if d < minDist then minDist = d; nearest = obj end
+            end
+        end
+    end
+    return nearest
+end
+
+-- ================== 4. HOVER: Lơ lửng trên đầu target ==================
+local function stopHover()
+    if hoverConn then
+        hoverConn:Disconnect()
+        hoverConn = nil
+    end
+    -- Trả physics về bình thường
+    local char = player.Character
+    local h = char and char:FindFirstChildOfClass("Humanoid")
+    if h then h:ChangeState(Enum.HumanoidStateType.GettingUp) end
+    -- Trả cam về
+    local cam = workspace.CurrentCamera
+    if cam then cam.CameraType = Enum.CameraType.Custom end
+end
+
+local function startHover(targetHRP)
+    stopHover() -- dọn cái cũ trước
+
+    local char = player.Character
+    if not char then return end
+    local charHRP = char:FindFirstChild("HumanoidRootPart")
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if not charHRP or not humanoid then return end
+
+    -- Tắt physics để không bị gravity kéo xuống
+    humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+
+    hoverConn = RunService.Heartbeat:Connect(function()
+        -- Nếu target chết hoặc farm tắt thì dừng hover
+        if not autoFarm or not isTargetAlive(currentTarget) then
+            stopHover()
+            return
+        end
+
+        local char2 = player.Character
+        local hrp2 = char2 and char2:FindFirstChild("HumanoidRootPart")
+        local tHRP = currentTarget and currentTarget:FindFirstChild("HumanoidRootPart")
+        if not hrp2 or not tHRP then stopHover() return end
+
+        -- Giữ nhân vật lơ lửng tại Y = target.Y + FLY_HEIGHT
+        local hoverY = tHRP.Position.Y + FLY_HEIGHT
+        local lookPos = Vector3.new(tHRP.Position.X, hoverY, tHRP.Position.Z)
+
+        -- Offset ra phía trước ATTACK_RANGE
+        local dir = (hrp2.Position - tHRP.Position)
+        dir = Vector3.new(dir.X, 0, dir.Z)
+        local offset = dir.Magnitude > 0 and dir.Unit * ATTACK_RANGE or Vector3.new(0, 0, ATTACK_RANGE)
+
+        hrp2.CFrame = CFrame.new(
+            Vector3.new(tHRP.Position.X + offset.X, hoverY, tHRP.Position.Z + offset.Z),
+            lookPos
+        )
+    end)
+end
+
+-- ================== 5. BAY (HEARTBEAT + TÁCH CAM) ==================
+local function flyTo(charHRP, targetPos)
+    local char = player.Character
+    if not char then return end
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return end
+
+    -- Tắt physics
+    humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+
+    -- Tách cam: giữ yên tại vị trí hiện tại, nhân vật bay còn cam đứng im
+    local cam = workspace.CurrentCamera
+    cam.CameraType = Enum.CameraType.Scriptable
+    local savedCamCF = cam.CFrame  -- lưu vị trí cam hiện tại
+
+    -- Điểm đến cao hơn target FLY_HEIGHT
+    local highPos = Vector3.new(targetPos.X, targetPos.Y + FLY_HEIGHT, targetPos.Z)
+    local dir = Vector3.new(charHRP.Position.X - targetPos.X, 0, charHRP.Position.Z - targetPos.Z)
+    local offset = dir.Magnitude > 0 and dir.Unit * ATTACK_RANGE or Vector3.new(0, 0, ATTACK_RANGE)
+    local goalPos = highPos + offset
+    local goalCF = CFrame.new(goalPos, Vector3.new(targetPos.X, goalPos.Y, targetPos.Z))
+
+    local startCF = charHRP.CFrame
+    local distance = (charHRP.Position - goalPos).Magnitude
+    local totalTime = math.clamp(distance / TWEEN_SPEED, 0.05, 3)
+    local elapsed = 0
+    local done = false
+
+    local conn
+    conn = RunService.Heartbeat:Connect(function(dt)
+        if not autoFarm then
+            done = true; conn:Disconnect(); return
+        end
+        elapsed = elapsed + dt
+        local alpha = math.clamp(elapsed / totalTime, 0, 1)
+
+        -- Giật kiểu premium: snap theo bước 0.05
+        local snappedAlpha = math.floor(alpha / 0.05) * 0.05
+        charHRP.CFrame = startCF:Lerp(goalCF, snappedAlpha)
+
+        -- Cam đứng yên trong lúc bay
+        cam.CFrame = savedCamCF
+
+        if alpha >= 1 then done = true; conn:Disconnect() end
+    end)
+
+    while not done do RunService.Heartbeat:Wait() end
+
+    -- Trả cam về Custom sau khi bay xong
+    cam.CameraType = Enum.CameraType.Custom
+    task.wait(0.05)
+end
+
+-- ================== 6. ATTACK ==================
+local function doAttack()
+    local sz = workspace.CurrentCamera.ViewportSize
+    VirtualInputManager:SendMouseButtonEvent(sz.X/2, sz.Y/2, 0, true, game, 1)
+    task.wait(0.05)
+    VirtualInputManager:SendMouseButtonEvent(sz.X/2, sz.Y/2, 0, false, game, 1)
+end
+
+-- ================== 7. MAIN LOOP ==================
+local function autoFarmLoop()
+    while autoFarm do
+        local char = player.Character
+        local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+        if not (char and humanoid and humanoid.Health > 0) then
+            stopHover()
+            task.wait(0.5); continue
+        end
+
+        local charHRP = char:FindFirstChild("HumanoidRootPart")
+        if not charHRP then task.wait(0.5); continue end
+
+        -- Chỉ đổi target khi target cũ chết
+        if not isTargetAlive(currentTarget) then
+            stopHover()
+            currentTarget = getNearestEnemy()
+
+            -- Bay đến target mới
+            if currentTarget then
+                local tHRP = currentTarget:FindFirstChild("HumanoidRootPart")
+                if tHRP then
+                    flyTo(charHRP, tHRP.Position)
+                    -- Bắt đầu hover lơ lửng trên đầu target
+                    startHover(tHRP)
+                end
+            end
+        end
+
+        -- Target vẫn còn sống → đánh
+        if isTargetAlive(currentTarget) then
+            doAttack()
+        else
+            stopHover()
+            currentTarget = nil
+        end
+
+        task.wait(0.3)
+    end
+
+    stopHover()
+    currentTarget = nil
+end
+
+-- ================== 8. TOGGLE ==================
+local ToggleAuto = Tabs.Main:AddToggle("ToggleAuto", {
+    Title = "Auto Farm Level",
+    Description = "Bay cao 25 studs, hover lơ lửng, tách cam khi bay",
+    Default = false
+})
+ToggleAuto:OnChanged(function()
+    autoFarm = Options.ToggleAuto.Value
+    if autoFarm then
+        if autoFarmThread then task.cancel(autoFarmThread) end
+        currentTarget = nil
+        autoFarmThread = task.spawn(autoFarmLoop)
+    else
+        if autoFarmThread then task.cancel(autoFarmThread) end
+        currentTarget = nil
+        stopHover()
+    end
+end)
+
+Tabs.Main:AddButton({
+    Title = "Reset Mục Tiêu",
+    Description = "Chọn lại target gần nhất",
+    Callback = function()
+        stopHover()
+        currentTarget = nil
+        Fluent:Notify({ Title = "Reset", Content = "Đã xóa mục tiêu!", Duration = 3 })
+    end
+})
+
+Tabs.Main:AddParagraph({
+    Title = "Thông tin",
+    Content = "✅ Tách cam khi bay, cam đứng yên\n✅ Hover lơ lửng độ cao 25 studs\n✅ Giật kiểu premium\n✅ Khóa target đến khi chết"
+})
+
+Tabs.Settings:AddButton({
+    Title = "Test Button",
+    Callback = function() playTapAnimation() end
+})
+
+-- ================== 9. SAVE ==================
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+InterfaceManager:SetFolder("MobileHubBananaCat")
+SaveManager:SetFolder("MobileHubBananaCat/SpecificGame")
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+Window:SelectTab(1)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == Enum.KeyCode.LeftControl and not gameProcessed then
+        menuOpen = not menuOpen
+    end
+end)
+
+Fluent:Notify({
+    Title = "Mobile Hub",
+    Content = "Load xong! Hover + tách cam ✅",
+    Duration = 8
+})
+
+SaveManager:LoadAutoloadConfig()
