@@ -1,0 +1,89 @@
+-- ==========================================
+-- ||      MOBILE HUB TOGGLE BUTTON        ||
+-- ==========================================
+
+local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "MobileToggleGui"
+ScreenGui.ResetOnSpawn = false
+
+-- Hỗ trợ tối đa cho các Executor Mobile (Delta, Codex, Hydrogen...)
+local targetGui = pcall(function() return gethui() end) and gethui() or CoreGui
+ScreenGui.Parent = targetGui
+
+-- 1. Tạo nút bấm (Giao diện chuẩn Hub Mobile)
+local ToggleButton = Instance.new("ImageButton")
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Size = UDim2.new(0, 45, 0, 45) -- Kích thước vừa tay cảm ứng
+ToggleButton.Position = UDim2.new(0, 15, 0, 130) -- Vị trí mặc định (góc trái)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(25, 25, 25) -- Màu xám đen
+ToggleButton.Image = "rbxassetid://13112771038" -- Icon Menu tối giản
+ToggleButton.Parent = ScreenGui
+
+-- 2. Bo tròn nút 100%
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0.5, 0)
+UICorner.Parent = ToggleButton
+
+-- 3. Tạo viền cho nút thêm phần hiện đại
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Color = Color3.fromRGB(70, 70, 70)
+UIStroke.Thickness = 1.5
+UIStroke.Parent = ToggleButton
+
+-- 4. Logic Kéo Thả (Vuốt trên màn hình cảm ứng)
+local dragging = false
+local dragInput, dragStart, startPos
+local isClicking = false
+
+local function update(input)
+    local delta = input.Position - dragStart
+    ToggleButton.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+ToggleButton.InputBegan:Connect(function(input)
+    -- Tương thích cả Chuột (PC) và Cảm ứng (Touch)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        isClicking = true
+        dragStart = input.Position
+        startPos = ToggleButton.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+ToggleButton.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        -- Nếu ngón tay di chuyển hơn 5 pixel -> Đang "Kéo" chứ không phải "Chạm"
+        if (input.Position - dragStart).Magnitude > 5 then
+            isClicking = false 
+        end
+        update(input)
+    end
+end)
+
+-- 5. Logic Bật/Tắt Menu khi chạm nhẹ (Tap)
+ToggleButton.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        if isClicking then
+            -- Bắn tín hiệu phím "LeftControl" (MinimizeKey mặc định của Fluent UI)
+            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.LeftControl, false, game)
+            task.wait()
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftControl, false, game)
+        end
+    end
+end)
