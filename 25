@@ -1,0 +1,165 @@
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "Fluent " .. Fluent.Version,
+    SubTitle = "by dawid",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true, -- The blur may be detectable, setting this to false disables blur entirely
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl -- Used when theres no MinimizeKeybind
+})
+
+--Fluent provides Lucide Icons https://lucide.dev/icons/ for the tabs, icons are optional
+local Tabs = {
+    Main = Window:AddTab({ Title = "Main", Icon = "" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+}
+
+local Options = Fluent.Options
+
+do
+    Fluent:Notify({
+        Title = "Notification",
+        Content = "This is a notification",
+        Duration = 5
+    })
+
+    Tabs.Main:AddParagraph({
+        Title = "Paragraph",
+        Content = "This is a paragraph.\nSecond line!"
+    })
+
+    Tabs.Main:AddButton({
+        Title = "Button",
+        Description = "Very important button",
+        Callback = function()
+            Window:Dialog({
+                Title = "Title",
+                Content = "This is a dialog",
+                Buttons = {
+                    { Title = "Confirm", Callback = function() print("Confirmed") end },
+                    { Title = "Cancel", Callback = function() print("Cancelled") end }
+                }
+            })
+        end
+    })
+
+    local Toggle = Tabs.Main:AddToggle("MyToggle", {Title = "Toggle", Default = false })
+    Toggle:OnChanged(function() print("Toggle changed:", Options.MyToggle.Value) end)
+    Options.MyToggle:SetValue(false)
+    
+    local Slider = Tabs.Main:AddSlider("Slider", {
+        Title = "Slider", Default = 2, Min = 0, Max = 5, Rounding = 1,
+        Callback = function(Value) print("Slider was changed:", Value) end
+    })
+    Slider:OnChanged(function(Value) print("Slider changed:", Value) end)
+    Slider:SetValue(3)
+
+    local Dropdown = Tabs.Main:AddDropdown("Dropdown", {
+        Title = "Dropdown",
+        Values = {"one", "two", "three"},
+        Multi = false,
+        Default = 1,
+    })
+end
+
+-- Hand the library over to our managers
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+InterfaceManager:SetFolder("FluentScriptHub")
+SaveManager:SetFolder("FluentScriptHub/specific-game")
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+Window:SelectTab(1)
+Fluent:Notify({
+    Title = "Fluent",
+    Content = "Menu & Banana Cat đã được tải!",
+    Duration = 8
+})
+SaveManager:LoadAutoloadConfig()
+
+
+-- ==========================================
+-- ||   TÍCH HỢP NÚT BANANA CAT DRAGGABLE  ||
+-- ==========================================
+
+local UserInputService = game:GetService("UserInputService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local CoreGui = game:GetService("CoreGui")
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "BananaCatMenu"
+-- Dùng CoreGui để UI không bị mất khi nhân vật reset
+local success, err = pcall(function() ScreenGui.Parent = CoreGui end)
+if not success then ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui") end
+
+local BananaCatBtn = Instance.new("ImageButton")
+BananaCatBtn.Name = "ToggleBtn"
+BananaCatBtn.Size = UDim2.new(0, 60, 0, 60) 
+BananaCatBtn.Position = UDim2.new(0.5, -30, 0, 20) 
+BananaCatBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+BananaCatBtn.BackgroundTransparency = 1 -- Nền trong suốt
+BananaCatBtn.Image = "rbxassetid://13483103203" -- ID ảnh Banana Cat (Bạn có thể đổi ID khác)
+BananaCatBtn.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(1, 0)
+UICorner.Parent = BananaCatBtn
+
+-- Biến xử lý Kéo Thả
+local dragging, dragInput, dragStart, startPos
+local isClicking = false
+
+local function update(input)
+    local delta = input.Position - dragStart
+    BananaCatBtn.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+BananaCatBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        isClicking = true -- Mặc định là click
+        dragStart = input.Position
+        startPos = BananaCatBtn.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+BananaCatBtn.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        -- Nếu chuột di chuyển quá 5 pixel thì tính là "Kéo" chứ không phải "Click"
+        if (input.Position - dragStart).Magnitude > 5 then
+            isClicking = false 
+        end
+        update(input)
+    end
+end)
+
+-- Khi nhả chuột ra, nếu vẫn là "Click" thì mới bật/tắt menu
+BananaCatBtn.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        if isClicking then
+            -- Giả lập bấm phím LeftControl để Fluent UI tự động thu gọn/mở rộng
+            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.LeftControl, false, game)
+            task.wait()
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftControl, false, game)
+        end
+    end
+end)
