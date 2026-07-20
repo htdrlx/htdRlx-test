@@ -1,0 +1,520 @@
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "Banana Cat Hub - [Premium] By Obii",
+    SubTitle = "",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(520, 399),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+local Tabs = {
+    Shop             = Window:AddTab({ Title = "Shop",                  Icon = "shopping-cart" }),
+    StatsAndServer   = Window:AddTab({ Title = "Stats And Server",      Icon = "bar-chart-2" }),
+    LocalPlayer      = Window:AddTab({ Title = "Local Player",          Icon = "user" }),
+    SettingFram      = Window:AddTab({ Title = "Setting Fram",          Icon = "sliders-horizontal" }),
+    HoldAndSkill     = Window:AddTab({ Title = "Hold And Select Skill", Icon = "sword" }),
+    Framing          = Window:AddTab({ Title = "Framing",               Icon = "activity" }),
+    StackFraming     = Window:AddTab({ Title = "Stack Framing",         Icon = "layers" }),
+    FramingOther     = Window:AddTab({ Title = "Framing Other",         Icon = "shuffle" }),
+    FruitRaidDungeon = Window:AddTab({ Title = "Fruit & Raid, Dungeon", Icon = "cherry" }),
+    SeaEvent         = Window:AddTab({ Title = "Sea Event",             Icon = "waves" }),
+    UpgradeRace      = Window:AddTab({ Title = "Upgrade Race",          Icon = "zap" }),
+    GetUpgradeItem   = Window:AddTab({ Title = "Get Upgrade And Item",  Icon = "package" }),
+    VolcanoEvent     = Window:AddTab({ Title = "Volcano Event",         Icon = "flame" }),
+    ESP              = Window:AddTab({ Title = "ESP",                   Icon = "scan" }),
+    PvP              = Window:AddTab({ Title = "PvP",                   Icon = "crosshair" }),
+    Webhook          = Window:AddTab({ Title = "Tab Webhook",           Icon = "webhook" }),
+    Settings         = Window:AddTab({ Title = "Settings",              Icon = "settings" }),
+}
+
+local Options = Fluent.Options
+local player = game.Players.LocalPlayer
+local RS = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TeleportService = game:GetService("TeleportService")
+
+-- Nút bật tắt menu hình Banana Cat
+local toggleGui = Instance.new("ScreenGui")
+toggleGui.Name = "BananaCatToggle"
+toggleGui.ResetOnSpawn = false
+toggleGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+toggleGui.Parent = player.PlayerGui
+
+local toggleBtn = Instance.new("ImageButton")
+toggleBtn.Size = UDim2.fromOffset(55, 55)
+toggleBtn.Position = UDim2.new(0, 10, 0.5, -27)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+toggleBtn.BackgroundTransparency = 0.3
+toggleBtn.Image = "rbxassetid://14579835944" -- Banana Cat image
+toggleBtn.ScaleType = Enum.ScaleType.Fit
+toggleBtn.Parent = toggleGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(1, 0)
+corner.Parent = toggleBtn
+
+local menuVisible = true
+toggleBtn.MouseButton1Click:Connect(function()
+    menuVisible = not menuVisible
+    for _, gui in ipairs(player.PlayerGui:GetChildren()) do
+        if gui.Name == "Fluent" then
+            gui.Enabled = menuVisible
+        end
+    end
+end)
+
+-- Hàm hop server
+local function hopServer()
+    local Http = game:GetService("HttpService")
+    local ok, res = pcall(function()
+        return Http:GetAsync("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100")
+    end)
+    if ok then
+        local data = Http:JSONDecode(res)
+        for _, s in ipairs(data.data) do
+            if s.id ~= game.JobId then
+                pcall(function() TeleportService:TeleportToPlaceInstance(game.PlaceId, s.id, player) end)
+                break
+            end
+        end
+    end
+end
+
+-- ========================
+-- TAB: SHOP
+-- ========================
+
+Tabs.Shop:AddButton({ Title = "Redeem Code", Description = "Nhập code để đổi thưởng", Callback = function() RS.Remotes.RedeemCode:FireServer() end })
+Tabs.Shop:AddButton({ Title = "Teleport Old World", Description = "Dịch chuyển về Biển Thứ Nhất", Callback = function() RS.Remotes.ChangeIsland:FireServer("First Sea") end })
+Tabs.Shop:AddButton({ Title = "Teleport Third Sea", Description = "Dịch chuyển đến Biển Thứ Ba", Callback = function() RS.Remotes.ChangeIsland:FireServer("Third Sea") end })
+Tabs.Shop:AddButton({ Title = "Buy Dual Flintlock", Description = "Mua súng Dual Flintlock", Callback = function() RS.Remotes.BuyWeapon:FireServer("Dual Flintlock") end })
+Tabs.Shop:AddButton({ Title = "Reroll Race", Description = "Quay lại chủng tộc ngẫu nhiên", Callback = function() RS.Remotes.RerollRace:FireServer() end })
+Tabs.Shop:AddButton({ Title = "Reset Stats", Description = "Đặt lại toàn bộ chỉ số", Callback = function() RS.Remotes.ResetStats:FireServer() end })
+Tabs.Shop:AddButton({ Title = "Buy Ghoul Race", Description = "Mua chủng tộc Ghoul", Callback = function() RS.Remotes.BuyRace:FireServer("Ghoul") end })
+Tabs.Shop:AddButton({ Title = "Buy Cyborg Race", Description = "Mua chủng tộc Cyborg", Callback = function() RS.Remotes.BuyRace:FireServer("Cyborg") end })
+
+Tabs.Shop:AddParagraph({ Title = "Fighting Shop", Content = "Mua các phong cách chiến đấu" })
+local fightingStyles = {
+    { name = "Black Leg", desc = "Mua kỹ năng Black Leg" },
+    { name = "Fishman Karate", desc = "Mua kỹ năng Fishman Karate" },
+    { name = "Electro", desc = "Mua kỹ năng Electro" },
+    { name = "Dragon Breath", desc = "Mua kỹ năng Dragon Breath" },
+    { name = "Superhuman", desc = "Mua kỹ năng Superhuman" },
+    { name = "Death Step", desc = "Mua kỹ năng Death Step" },
+    { name = "Sharkman Karate", desc = "Mua kỹ năng Sharkman Karate" },
+    { name = "Electric Claw", desc = "Mua kỹ năng Electric Claw" },
+    { name = "Dragon Talon", desc = "Mua kỹ năng Dragon Talon" },
+    { name = "God Human", desc = "Mua kỹ năng God Human" },
+    { name = "Sanguine Art", desc = "Mua kỹ năng Sanguine Art" },
+}
+for _, style in ipairs(fightingStyles) do
+    local key = style.name:gsub(" ", "")
+    Tabs.Shop:AddToggle(key, { Title = style.name, Description = style.desc, Default = false })
+    Options[key]:OnChanged(function() if Options[key].Value then RS.Remotes.BuyFighting:FireServer(style.name) end end)
+end
+
+Tabs.Shop:AddParagraph({ Title = "Ability Shop", Content = "Mua các kỹ năng đặc biệt" })
+local abilities = {
+    { name = "Skyjump", price = "$10.000", desc = "Mua kỹ năng nhảy lên trời" },
+    { name = "Buso Haki", price = "$25.000", desc = "Mua Buso Haki" },
+    { name = "Observation Haki", price = "$750.000", desc = "Mua Observation Haki" },
+    { name = "Soru", price = "$100.000", desc = "Mua kỹ năng Soru" },
+}
+for _, ab in ipairs(abilities) do
+    Tabs.Shop:AddButton({ Title = ab.name .. " [" .. ab.price .. "]", Description = ab.desc, Callback = function() RS.Remotes.BuyAbility:FireServer(ab.name) end })
+end
+
+-- ========================
+-- TAB: STATS AND SERVER
+-- ========================
+
+Tabs.StatsAndServer:AddParagraph({ Title = "Stats", Content = "Thông tin máy chủ và sự kiện" })
+local timerLabel = Tabs.StatsAndServer:AddParagraph({ Title = "Timer", Content = "00 h  00 m  00 s" })
+local serverTimerLabel = Tabs.StatsAndServer:AddParagraph({ Title = "Server Timer", Content = "00 h  00 m  00 s" })
+local fistTimerLabel = Tabs.StatsAndServer:AddParagraph({ Title = "Next Timer Spam Fist Of Darkness Or God's Chalice", Content = "00 h  00 m  00 s" })
+
+local function makeLabel(title) return Tabs.StatsAndServer:AddParagraph({ Title = title, Content = "X" }) end
+local eliteHunterLabel = makeLabel("Elite Hunter")
+local tyrantEyesLabel = makeLabel("Tyrant Eyes")
+local cakePrinceLabel = makeLabel("Cake Prince")
+local leviathanLabel = makeLabel("Leviathan")
+local mirageLabel = makeLabel("Mirage Island")
+local prehistoricLabel = makeLabel("Prehistoric Island")
+local frozenLabel = makeLabel("Frozen Dimension")
+local moonLabel = makeLabel("Moon")
+local ancientOneLabel = makeLabel("Ancient One You Are")
+
+local function checkVal(path)
+    local ok, val = pcall(function() return RS[path].Value end)
+    if not ok then return nil end
+    return val
+end
+
+local startTime = tick()
+local moonCount = 0
+local FIST_INTERVAL = 4 * 3600
+
+RunService.Heartbeat:Connect(function()
+    local clockTime = game:GetService("Lighting").ClockTime
+    local h = math.floor(clockTime)
+    local m = math.floor((clockTime - h) * 60)
+    local s = math.floor(((clockTime - h) * 60 - m) * 60)
+    timerLabel:Set("Timer", string.format("%02d h  %02d m  %02d s", h, m, s))
+    local elapsed = tick() - startTime
+    serverTimerLabel:Set("Server Timer", string.format("%02d h  %02d m  %02d s", math.floor(elapsed/3600), math.floor((elapsed%3600)/60), math.floor(elapsed%60)))
+    local timeLeft = FIST_INTERVAL - (os.time() % FIST_INTERVAL)
+    fistTimerLabel:Set("Next Timer Spam Fist Of Darkness Or God's Chalice", string.format("%02d h  %02d m  %02d s", math.floor(timeLeft/3600), math.floor((timeLeft%3600)/60), math.floor(timeLeft%60)))
+    local function getStatus(path) local val = checkVal(path) if val == nil then return "X" end if val == true or val == 1 then return "V" end return "X" end
+    eliteHunterLabel:Set("Elite Hunter", getStatus("EliteHunter"))
+    tyrantEyesLabel:Set("Tyrant Eyes", getStatus("TyrantEyes"))
+    cakePrinceLabel:Set("Cake Prince", getStatus("CakePrince"))
+    leviathanLabel:Set("Leviathan", getStatus("Leviathan"))
+    mirageLabel:Set("Mirage Island", getStatus("MirageIsland"))
+    prehistoricLabel:Set("Prehistoric Island", getStatus("PrehistoricIsland"))
+    frozenLabel:Set("Frozen Dimension", getStatus("FrozenDimension"))
+    ancientOneLabel:Set("Ancient One You Are", getStatus("AncientOne"))
+    local moonVal = checkVal("MoonCount")
+    if moonVal then moonCount = tonumber(moonVal) or moonCount end
+    moonLabel:Set("Moon", moonCount .. " / 5")
+end)
+
+Tabs.StatsAndServer:AddParagraph({ Title = "Server", Content = "Quản lý và di chuyển máy chủ" })
+local jobIDInput = ""
+Tabs.StatsAndServer:AddInput("JobIDInput", { Title = "Input Your JobID Here", Description = "Nhập ID máy chủ cần tham gia", Placeholder = "Input Here", Default = "", Numeric = false, Finished = true, Callback = function(v) jobIDInput = v end })
+Tabs.StatsAndServer:AddToggle("SpamJoin", { Title = "Spam Join", Description = "Liên tục tham gia máy chủ theo JobID", Default = false })
+Options.SpamJoin:OnChanged(function()
+    if Options.SpamJoin.Value then task.spawn(function() while Options.SpamJoin.Value do if jobIDInput ~= "" then pcall(function() TeleportService:TeleportToPlaceInstance(game.PlaceId, jobIDInput, player) end) end task.wait(1) end end) end
+end)
+Tabs.StatsAndServer:AddButton({ Title = "Copy Join", Description = "Sao chép link tham gia máy chủ", Callback = function()
+    if jobIDInput ~= "" then setclipboard("roblox://experiences/start?placeId=" .. game.PlaceId .. "&gameInstanceId=" .. jobIDInput) Fluent:Notify({ Title = "Server", Content = "Đã sao chép link!", Duration = 3 })
+    else Fluent:Notify({ Title = "Server", Content = "Vui lòng nhập JobID trước!", Duration = 3 }) end
+end })
+Tabs.StatsAndServer:AddButton({ Title = "Rejoin Server", Description = "Tham gia lại máy chủ hiện tại", Callback = function() TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, player) end })
+Tabs.StatsAndServer:AddButton({ Title = "Hop Server", Description = "Nhảy sang máy chủ ngẫu nhiên", Callback = function() hopServer() end })
+Tabs.StatsAndServer:AddButton({ Title = "Hop Server Less Player", Description = "Nhảy sang máy chủ ít người nhất", Callback = function()
+    local Http = game:GetService("HttpService")
+    local ok, res = pcall(function() return Http:GetAsync("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100") end)
+    if ok then
+        local data = Http:JSONDecode(res)
+        local best, bestCount = nil, math.huge
+        for _, s in ipairs(data.data) do if s.playing < bestCount and s.id ~= game.JobId then best = s.id bestCount = s.playing end end
+        if best then TeleportService:TeleportToPlaceInstance(game.PlaceId, best, player) end
+    end
+end })
+
+-- ========================
+-- TAB: LOCAL PLAYER
+-- ========================
+
+Tabs.LocalPlayer:AddToggle("AutoTranslate", { Title = "Auto Translate", Description = "Tự động dịch văn bản trong game", Default = false })
+Tabs.LocalPlayer:AddButton({ Title = "Stop Tween", Description = "Dừng toàn bộ animation tween trong game", Callback = function()
+    for _, v in ipairs(workspace:GetDescendants()) do if v:IsA("BasePart") then v.Velocity = Vector3.zero end end
+    Fluent:Notify({ Title = "Local Player", Content = "Đã dừng tween!", Duration = 3 })
+end })
+Tabs.LocalPlayer:AddButton({ Title = "Fix UI Button Game", Description = "Sửa lỗi các nút bấm trong game", Callback = function()
+    for _, v in ipairs(player.PlayerGui:GetDescendants()) do if v:IsA("GuiButton") then v.Active = true end end
+    Fluent:Notify({ Title = "Local Player", Content = "Đã sửa UI Button!", Duration = 3 })
+end })
+Tabs.LocalPlayer:AddButton({ Title = "Open Devil Fruit Shop", Description = "Mở cửa hàng Trái Ác Quỷ", Callback = function() RS.Remotes.OpenFruitShop:FireServer() end })
+Tabs.LocalPlayer:AddButton({ Title = "Open Devil Fruit Shop Mirage", Description = "Mở cửa hàng Trái Ác Quỷ tại Mirage Island", Callback = function() RS.Remotes.OpenFruitShopMirage:FireServer() end })
+Tabs.LocalPlayer:AddButton({ Title = "Open Title", Description = "Mở bảng danh hiệu nhân vật", Callback = function() RS.Remotes.OpenTitle:FireServer() end })
+Tabs.LocalPlayer:AddButton({ Title = "Boost FPS", Description = "Tăng FPS bằng cách giảm hiệu ứng đồ họa", Callback = function()
+    game:GetService("Lighting").GlobalShadows = false game:GetService("Lighting").FogEnd = 1e9
+    for _, v in ipairs(workspace:GetDescendants()) do if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") then v.Enabled = false end end
+    Fluent:Notify({ Title = "Local Player", Content = "Đã Boost FPS!", Duration = 3 })
+end })
+Tabs.LocalPlayer:AddButton({ Title = "Turn On Fast Mode", Description = "Bật chế độ nhanh giảm chất lượng đồ họa", Callback = function() settings().Rendering.QualityLevel = 1 Fluent:Notify({ Title = "Local Player", Content = "Fast Mode đã bật!", Duration = 3 }) end })
+Tabs.LocalPlayer:AddButton({ Title = "Change Team To Pirates", Description = "Đổi phe sang Cướp Biển", Callback = function() RS.Remotes.ChangeTeam:FireServer("Pirates") end })
+Tabs.LocalPlayer:AddButton({ Title = "Change Team To Marines", Description = "Đổi phe sang Hải Quân", Callback = function() RS.Remotes.ChangeTeam:FireServer("Marines") end })
+Tabs.LocalPlayer:AddToggle("AutoSummonCake", { Title = "Auto Summon Cake Prince", Description = "Tự động triệu hồi Cake Prince", Default = false })
+Options.AutoSummonCake:OnChanged(function() if Options.AutoSummonCake.Value then task.spawn(function() while Options.AutoSummonCake.Value do pcall(function() RS.Remotes.SummonCakePrince:FireServer() end) task.wait(1) end end) end end)
+
+local noclipConn
+Tabs.LocalPlayer:AddToggle("NoClip", { Title = "No Clip", Description = "Cho phép xuyên qua tường và vật thể", Default = false })
+Options.NoClip:OnChanged(function()
+    if Options.NoClip.Value then
+        noclipConn = RunService.Stepped:Connect(function() local char = player.Character if char then for _, p in ipairs(char:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide = false end end end end)
+    else
+        if noclipConn then noclipConn:Disconnect() end
+        local char = player.Character if char then for _, p in ipairs(char:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide = true end end end
+    end
+end)
+Tabs.LocalPlayer:AddToggle("RemoveDamageText", { Title = "Remove Damage Text", Description = "Ẩn chữ số sát thương trên màn hình", Default = false })
+Options.RemoveDamageText:OnChanged(function() for _, v in ipairs(workspace:GetDescendants()) do if v:IsA("BillboardGui") then v.Enabled = not Options.RemoveDamageText.Value end end end)
+Tabs.LocalPlayer:AddToggle("RemoveNotif", { Title = "Remove Notification", Description = "Ẩn các thông báo trong game", Default = false })
+Options.RemoveNotif:OnChanged(function() for _, v in ipairs(player.PlayerGui:GetDescendants()) do if v.Name == "Notification" or v.Name == "NotifFrame" then v.Enabled = not Options.RemoveNotif.Value end end end)
+Tabs.LocalPlayer:AddDropdown("SelectStats", { Title = "Select Stats", Description = "Chọn chỉ số muốn nâng cấp", Values = { "Melee","Sword","Fruit","Gun","Tank" }, Multi = false, Default = 1 })
+Tabs.LocalPlayer:AddSlider("PointStats", { Title = "Point Stats", Description = "Số điểm muốn phân bổ", Default = 1, Min = 1, Max = 6500, Rounding = 0 })
+Tabs.LocalPlayer:AddToggle("AutoStats", { Title = "Auto Stats", Description = "Tự động nâng chỉ số đã chọn", Default = false })
+Options.AutoStats:OnChanged(function() if Options.AutoStats.Value then task.spawn(function() while Options.AutoStats.Value do pcall(function() RS.Remotes.AddStats:FireServer(Options.SelectStats.Value or "Melee", Options.PointStats.Value or 1) end) task.wait(0.5) end end) end end)
+local islandList = { "Starter Island","Marine Starter Island","Jungle","Pirate Village","Desert","Frozen Village","Marine Fortress","Skylands","Fountain City","Middle Town","Colosseum","Magma Village","Underwater City","Kingdom of Rose","Green Zone","Graveyard","Snow Mountain","Hot & Cold","Cursed Ship","Ice Castle","Port Town","Hydra Island","Great Tree","Floating Turtle","Haunted Castle","Sea of Treats","Candy Land","Tiki Outpost","Forgotten Island" }
+Tabs.LocalPlayer:AddDropdown("SelectIsland", { Title = "Select Island", Description = "Chọn đảo muốn dịch chuyển đến", Values = islandList, Multi = false, Default = 1 })
+Tabs.LocalPlayer:AddToggle("TeleportToIsland", { Title = "Teleport To Island", Description = "Dịch chuyển đến đảo đã chọn", Default = false })
+Options.TeleportToIsland:OnChanged(function() if Options.TeleportToIsland.Value then pcall(function() RS.Remotes.TeleportToIsland:FireServer(Options.SelectIsland.Value) end) Options.TeleportToIsland:SetValue(false) end end)
+Tabs.LocalPlayer:AddButton({ Title = "Remove", Description = "Tắt toàn bộ tính năng trong Local Player", Callback = function()
+    Options.NoClip:SetValue(false) Options.RemoveDamageText:SetValue(false) Options.RemoveNotif:SetValue(false) Options.AutoSummonCake:SetValue(false) Options.AutoStats:SetValue(false) Options.TeleportToIsland:SetValue(false)
+    Fluent:Notify({ Title = "Local Player", Content = "Đã tắt toàn bộ tính năng!", Duration = 3 })
+end })
+-- ========================
+-- TAB: SETTING FRAM
+-- ========================
+
+Tabs.SettingFram:AddDropdown("SelectWeapon", { Title = "Select Weapon", Description = "Chọn vũ khí sử dụng khi farm", Values = { "Melee","Sword","Fruit" }, Multi = false, Default = 1 })
+Tabs.SettingFram:AddToggle("AttackNoAnimation", { Title = "Attack No Animation", Description = "Tấn công không có hoạt ảnh", Default = false })
+Tabs.SettingFram:AddToggle("KillAuraOnlyRaid", { Title = "Kill Aura Only Raid And Volcano", Description = "Chỉ dùng Kill Aura trong Raid và Volcano", Default = false })
+Tabs.SettingFram:AddSlider("TimerDelayKill", { Title = "Timer Delay Kill", Description = "Thời gian chờ giữa các lần tấn công", Default = 5, Min = 0, Max = 5, Rounding = 1 })
+Tabs.SettingFram:AddToggle("AutoClick", { Title = "Auto Click", Description = "Tự động click liên tục", Default = false })
+Options.AutoClick:OnChanged(function() if Options.AutoClick.Value then task.spawn(function() while Options.AutoClick.Value do pcall(function() mouse1click() end) task.wait(0.05) end end) end end)
+Tabs.SettingFram:AddToggle("KillAuraDragonStorm", { Title = "Kill Aura With Dragon Storm", Description = "Dùng Kill Aura kết hợp với Dragon Storm", Default = false })
+Tabs.SettingFram:AddToggle("AutoTurnBuso", { Title = "Auto Turn Buso", Description = "Tự động bật Buso Haki khi farm", Default = false })
+Options.AutoTurnBuso:OnChanged(function() if Options.AutoTurnBuso.Value then task.spawn(function() while Options.AutoTurnBuso.Value do pcall(function() RS.Remotes.ActivateBuso:FireServer() end) task.wait(1) end end) end end)
+Tabs.SettingFram:AddToggle("AutoTurnObservation", { Title = "Auto Turn On Observation", Description = "Tự động bật Observation khi bay farm", Default = false })
+Options.AutoTurnObservation:OnChanged(function() if Options.AutoTurnObservation.Value then task.spawn(function() while Options.AutoTurnObservation.Value do pcall(function() RS.Remotes.ActivateObservation:FireServer() end) task.wait(1) end end) end end)
+Tabs.SettingFram:AddToggle("AutoTurnRaceV3", { Title = "Auto Turn On Race V3", Description = "Tự động bật kỹ năng Race V3", Default = false })
+Options.AutoTurnRaceV3:OnChanged(function() if Options.AutoTurnRaceV3.Value then task.spawn(function() while Options.AutoTurnRaceV3.Value do pcall(function() RS.Remotes.ActivateRaceV3:FireServer() end) task.wait(1) end end) end end)
+Tabs.SettingFram:AddToggle("AutoTurnRaceV4", { Title = "Auto Turn On Race V4", Description = "Tự động bật kỹ năng Race V4", Default = false })
+Options.AutoTurnRaceV4:OnChanged(function() if Options.AutoTurnRaceV4.Value then task.spawn(function() while Options.AutoTurnRaceV4.Value do pcall(function() RS.Remotes.ActivateRaceV4:FireServer() end) task.wait(1) end end) end end)
+Tabs.SettingFram:AddToggle("AutoDodgeSkill", { Title = "Auto Dodge Skill Mods", Description = "Tự động né kỹ năng của mob", Default = false })
+Tabs.SettingFram:AddToggle("TeleportYLowHealth", { Title = "Teleport Y If Low Health", Description = "Tự động dịch chuyển lên cao khi máu thấp", Default = false })
+Tabs.SettingFram:AddSlider("HealthPercent", { Title = "% Health Player", Description = "Ngưỡng máu để kích hoạt teleport (mặc định 40%)", Default = 40, Min = 1, Max = 100, Rounding = 0 })
+Tabs.SettingFram:AddSlider("DistanceTeleportY", { Title = "Distance Teleport Y", Description = "Độ cao dịch chuyển khi máu thấp (mặc định 800)", Default = 800, Min = 100, Max = 10000, Rounding = 0 })
+RunService.Heartbeat:Connect(function()
+    if Options.TeleportYLowHealth and Options.TeleportYLowHealth.Value then
+        local char = player.Character local hum = char and char:FindFirstChild("Humanoid") local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        if hum and hrp and (hum.Health/hum.MaxHealth)*100 <= Options.HealthPercent.Value then hrp.CFrame = CFrame.new(hrp.Position.X, hrp.Position.Y + Options.DistanceTeleportY.Value, hrp.Position.Z) end
+    end
+end)
+Tabs.SettingFram:AddSlider("BringMobCount", { Title = "Bring Mob Count", Description = "Số lượng mob kéo lại gần (mặc định 2)", Default = 2, Min = 1, Max = 6, Rounding = 0 })
+Tabs.SettingFram:AddToggle("BringMob", { Title = "Bring Mob", Description = "Kéo mob lại gần nhân vật", Default = false })
+Options.BringMob:OnChanged(function()
+    if Options.BringMob.Value then task.spawn(function()
+        while Options.BringMob.Value do
+            local char = player.Character local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            if hrp then local count = 0 for _, v in ipairs(workspace:GetChildren()) do if count >= Options.BringMobCount.Value then break end if v:IsA("Model") and v ~= char and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") then v.HumanoidRootPart.CFrame = CFrame.new(hrp.Position + Vector3.new(math.random(-5,5),0,math.random(-5,5))) count = count + 1 end end end
+            task.wait(0.5)
+        end
+    end) end
+end)
+Tabs.SettingFram:AddSlider("SpeedTween", { Title = "Speed Tween", Description = "Tốc độ tween khi di chuyển farm (mặc định 350)", Default = 350, Min = 1, Max = 500, Rounding = 0 })
+
+-- ========================
+-- TAB: HOLD AND SELECT SKILL
+-- ========================
+
+Tabs.HoldAndSkill:AddParagraph({ Title = "Select Skill", Content = "Chọn skill sử dụng cho từng loại vũ khí" })
+Tabs.HoldAndSkill:AddDropdown("SkillMelee", { Title = "Select Skill Melee", Description = "Chọn skill cho võ", Values = { "Z","X","C" }, Multi = false, Default = 1 })
+Tabs.HoldAndSkill:AddDropdown("SkillSword", { Title = "Select Skill Sword", Description = "Chọn skill cho kiếm", Values = { "Z","X" }, Multi = false, Default = 1 })
+Tabs.HoldAndSkill:AddDropdown("SkillGun", { Title = "Select Skill Gun", Description = "Chọn skill cho súng", Values = { "Z","X" }, Multi = false, Default = 1 })
+Tabs.HoldAndSkill:AddDropdown("SkillFruit", { Title = "Select Skill Fruit", Description = "Chọn skill cho trái", Values = { "Z","X","C","V","F" }, Multi = false, Default = 1 })
+Tabs.HoldAndSkill:AddParagraph({ Title = "Hold Skill", Content = "Cài đặt giữ skill tự động" })
+Tabs.HoldAndSkill:AddSlider("KillAtHeart", { Title = "Kill At % Heart", Description = "Dùng skill khi máu quái còn bao nhiêu %", Default = 70, Min = 1, Max = 100, Rounding = 0 })
+Tabs.HoldAndSkill:AddSlider("HoldSkillZ", { Title = "Hold Skill Z (seconds)", Description = "Thời gian giữ phím Z", Default = 0.1, Min = 0.1, Max = 100, Rounding = 1 })
+Tabs.HoldAndSkill:AddSlider("HoldSkillX", { Title = "Hold Skill X (seconds)", Description = "Thời gian giữ phím X", Default = 0.1, Min = 0.1, Max = 100, Rounding = 1 })
+Tabs.HoldAndSkill:AddSlider("HoldSkillC", { Title = "Hold Skill C (seconds)", Description = "Thời gian giữ phím C", Default = 0.1, Min = 0.1, Max = 100, Rounding = 1 })
+RunService.Heartbeat:Connect(function()
+    local char = player.Character local hrp = char and char:FindFirstChild("HumanoidRootPart") if not hrp then return end
+    for _, v in ipairs(workspace:GetChildren()) do
+        if v:IsA("Model") and v ~= char then local hum = v:FindFirstChild("Humanoid") local mobHRP = v:FindFirstChild("HumanoidRootPart") if hum and mobHRP and hum.Health > 0 then
+            if (hrp.Position - mobHRP.Position).Magnitude <= 60 and (hum.Health/hum.MaxHealth)*100 <= Options.KillAtHeart.Value then
+                pcall(function() local VIM = game:GetService("VirtualInputManager")
+                    VIM:SendKeyEvent(true, Options.SkillMelee.Value or "Z", false, game) task.wait(Options.HoldSkillZ.Value) VIM:SendKeyEvent(false, Options.SkillMelee.Value or "Z", false, game) task.wait(0.1)
+                    VIM:SendKeyEvent(true, "X", false, game) task.wait(Options.HoldSkillX.Value) VIM:SendKeyEvent(false, "X", false, game) task.wait(0.1)
+                    VIM:SendKeyEvent(true, "C", false, game) task.wait(Options.HoldSkillC.Value) VIM:SendKeyEvent(false, "C", false, game)
+                end)
+            end
+        end end
+    end
+end)
+-- ========================
+-- TAB: FRAMING
+-- ========================
+
+Tabs.Framing:AddParagraph({ Title = "Framing", Content = "Cài đặt tự động farm" })
+Tabs.Framing:AddDropdown("SelectMethodFram", { Title = "Select Method Farm", Description = "Chọn phương thức farm", Values = { "Farm Level","Farm Katakuri","Farm Bone","Aura Farm" }, Multi = false, Default = 1 })
+Tabs.Framing:AddSlider("FramRange", { Title = "Farm Range", Description = "Phạm vi farm (mặc định 300)", Default = 300, Min = 1, Max = 1000, Rounding = 0 })
+Tabs.Framing:AddToggle("IgnoreKatakuri", { Title = "Ignore Attack Katakuri", Description = "Bỏ qua đòn tấn công của Katakuri", Default = false })
+Tabs.Framing:AddToggle("HopFindKatakuri", { Title = "Hop Find Katakuri", Description = "Tự động nhảy server tìm Katakuri", Default = false })
+Options.HopFindKatakuri:OnChanged(function() if Options.HopFindKatakuri.Value then task.spawn(function() while Options.HopFindKatakuri.Value do local found = false for _, v in ipairs(workspace:GetChildren()) do if v.Name:find("Katakuri") then found = true break end end if found then Fluent:Notify({ Title = "Framing", Content = "Đã tìm thấy Katakuri!", Duration = 3 }) Options.HopFindKatakuri:SetValue(false) else hopServer() end task.wait(3) end end) end end)
+Tabs.Framing:AddToggle("AcceptQuest", { Title = "Accept Quest (Katakuri / Bone / Tyrant)", Description = "Tự động nhận nhiệm vụ", Default = false })
+Options.AcceptQuest:OnChanged(function() if Options.AcceptQuest.Value then task.spawn(function() while Options.AcceptQuest.Value do pcall(function() RS.Remotes.AcceptQuest:FireServer("Katakuri") RS.Remotes.AcceptQuest:FireServer("Bone") RS.Remotes.AcceptQuest:FireServer("Tyrant") end) task.wait(2) end end) end end)
+Tabs.Framing:AddToggle("StatsFram", { Title = "Stats Farm", Description = "Tự động phân bổ chỉ số khi farm", Default = false })
+Options.StatsFram:OnChanged(function() if Options.StatsFram.Value then task.spawn(function() while Options.StatsFram.Value do pcall(function() RS.Remotes.AddStats:FireServer(Options.SelectStats and Options.SelectStats.Value or "Melee", Options.PointStats and Options.PointStats.Value or 1) end) task.wait(1) end end) end end)
+Tabs.Framing:AddParagraph({ Title = "Mastery Farm", Content = "Tự động farm Mastery cho vũ khí" })
+Tabs.Framing:AddDropdown("SelectMethodMastery", { Title = "Select Method Mastery", Description = "Chọn loại vũ khí farm mastery", Values = { "Gun","Fruit" }, Multi = false, Default = 1 })
+Tabs.Framing:AddToggle("FarmMasteryGun", { Title = "Farm Mastery Gun", Description = "Tự động farm mastery cho súng", Default = false })
+Options.FarmMasteryGun:OnChanged(function() if Options.FarmMasteryGun.Value then task.spawn(function() while Options.FarmMasteryGun.Value do local char = player.Character local hrp = char and char:FindFirstChild("HumanoidRootPart") if hrp then for _, v in ipairs(workspace:GetChildren()) do if v:IsA("Model") and v ~= char and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 and (hrp.Position - v.HumanoidRootPart.Position).Magnitude <= Options.FramRange.Value then hrp.CFrame = CFrame.new(hrp.Position, v.HumanoidRootPart.Position) pcall(function() RS.Remotes.Combat:FireServer("Gun", v) end) end end end task.wait(0.1) end end) end end)
+Tabs.Framing:AddToggle("FarmMasteryFruit", { Title = "Farm Mastery Fruit", Description = "Tự động farm mastery cho trái", Default = false })
+Options.FarmMasteryFruit:OnChanged(function() if Options.FarmMasteryFruit.Value then task.spawn(function() while Options.FarmMasteryFruit.Value do local char = player.Character local hrp = char and char:FindFirstChild("HumanoidRootPart") if hrp then for _, v in ipairs(workspace:GetChildren()) do if v:IsA("Model") and v ~= char and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 and (hrp.Position - v.HumanoidRootPart.Position).Magnitude <= Options.FramRange.Value then hrp.CFrame = CFrame.new(hrp.Position, v.HumanoidRootPart.Position) pcall(function() RS.Remotes.Combat:FireServer("Fruit", v) end) end end end task.wait(0.1) end end) end end)
+
+-- ========================
+-- TAB: STACK FRAMING
+-- ========================
+
+local function autoFarmBoss(bossName, toggleKey)
+    task.spawn(function()
+        while Options[toggleKey] and Options[toggleKey].Value do
+            local char = player.Character local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            if hrp then for _, v in ipairs(workspace:GetChildren()) do if v.Name:find(bossName) and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then hrp.CFrame = CFrame.new(v.HumanoidRootPart.Position + Vector3.new(0,30,0)) pcall(function() RS.Remotes.Combat:FireServer("M1", v) end) break end end end
+            task.wait(0.5)
+        end
+    end)
+end
+
+local function hopFindBoss(bossName, toggleKey, notifText)
+    task.spawn(function()
+        while Options[toggleKey] and Options[toggleKey].Value do
+            local found = false for _, v in ipairs(workspace:GetChildren()) do if v.Name:find(bossName) and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then found = true break end end
+            if found then Fluent:Notify({ Title = "Stack Framing", Content = notifText, Duration = 3 }) Options[toggleKey]:SetValue(false) else hopServer() end
+            task.wait(3)
+        end
+    end)
+end
+
+Tabs.StackFraming:AddParagraph({ Title = "Auto World", Content = "Tự động di chuyển giữa các thế giới" })
+Tabs.StackFraming:AddToggle("AutoNewWorld", { Title = "Auto New World", Description = "Tự động dịch chuyển sang New World", Default = false })
+Options.AutoNewWorld:OnChanged(function() if Options.AutoNewWorld.Value then task.spawn(function() while Options.AutoNewWorld.Value do pcall(function() RS.Remotes.ChangeIsland:FireServer("Second Sea") end) task.wait(3) end end) end end)
+Tabs.StackFraming:AddToggle("AutoThirdSea", { Title = "Auto Third Sea", Description = "Tự động dịch chuyển sang Third Sea", Default = false })
+Options.AutoThirdSea:OnChanged(function() if Options.AutoThirdSea.Value then task.spawn(function() while Options.AutoThirdSea.Value do pcall(function() RS.Remotes.ChangeIsland:FireServer("Third Sea") end) task.wait(3) end end) end end)
+Tabs.StackFraming:AddParagraph({ Title = "Devil Fruit", Content = "Tự động tìm và nhặt Trái Ác Quỷ" })
+Tabs.StackFraming:AddToggle("TeleportFruit", { Title = "Teleport Fruit", Description = "Tự động teleport đến Trái Ác Quỷ gần nhất", Default = false })
+Options.TeleportFruit:OnChanged(function() if Options.TeleportFruit.Value then task.spawn(function() while Options.TeleportFruit.Value do local char = player.Character local hrp = char and char:FindFirstChild("HumanoidRootPart") if hrp then local nearest, nearDist = nil, math.huge for _, v in ipairs(workspace:GetDescendants()) do if v:IsA("Model") and v.Name:find("Fruit") then local part = v:FindFirstChild("Handle") or v.PrimaryPart if part then local d = (hrp.Position - part.Position).Magnitude if d < nearDist then nearest = part nearDist = d end end end end if nearest then hrp.CFrame = CFrame.new(nearest.Position + Vector3.new(0,3,0)) end end task.wait(1) end end) end end)
+Tabs.StackFraming:AddToggle("TeleportFruitHop", { Title = "Teleport Fruit (Hop Server)", Description = "Nhảy server tìm Trái Ác Quỷ", Default = false })
+Options.TeleportFruitHop:OnChanged(function() if Options.TeleportFruitHop.Value then task.spawn(function() while Options.TeleportFruitHop.Value do local found = false for _, v in ipairs(workspace:GetDescendants()) do if v:IsA("Model") and v.Name:find("Fruit") then found = true break end end if found then Fluent:Notify({ Title = "Stack Framing", Content = "Đã tìm thấy Trái Ác Quỷ!", Duration = 3 }) Options.TeleportFruitHop:SetValue(false) else hopServer() end task.wait(3) end end) end end)
+Tabs.StackFraming:AddParagraph({ Title = "Event Game", Content = "Tự động tham gia sự kiện trong game" })
+Tabs.StackFraming:AddToggle("AutoFactory", { Title = "Auto Factory", Description = "Tự động farm Factory", Default = false })
+Options.AutoFactory:OnChanged(function() if Options.AutoFactory.Value then task.spawn(function() while Options.AutoFactory.Value do pcall(function() RS.Remotes.JoinFactory:FireServer() end) task.wait(2) end end) end end)
+Tabs.StackFraming:AddToggle("AutoPirateRaid", { Title = "Auto Pirate Raid", Description = "Tự động tham gia Pirate Raid", Default = false })
+Options.AutoPirateRaid:OnChanged(function() if Options.AutoPirateRaid.Value then task.spawn(function() while Options.AutoPirateRaid.Value do pcall(function() RS.Remotes.JoinRaid:FireServer() end) task.wait(2) end end) end end)
+Tabs.StackFraming:AddParagraph({ Title = "Boss Rip Indra", Content = "Tự động farm Boss Indra" })
+Tabs.StackFraming:AddToggle("AutoEliteHunter", { Title = "Auto Elite Hunter", Description = "Tự động farm Elite Hunter", Default = false })
+Options.AutoEliteHunter:OnChanged(function() if Options.AutoEliteHunter.Value then autoFarmBoss("Elite", "AutoEliteHunter") end end)
+Tabs.StackFraming:AddToggle("HopEliteHunter", { Title = "Hop Server Elite Hunter", Description = "Nhảy server tìm Elite Hunter", Default = false })
+Options.HopEliteHunter:OnChanged(function() if Options.HopEliteHunter.Value then hopFindBoss("Elite", "HopEliteHunter", "Đã tìm thấy Elite Hunter!") end end)
+Tabs.StackFraming:AddToggle("AutoTouchPadHaki", { Title = "Auto Touch Pad Haki", Description = "Tự động chạm vào Pad Haki", Default = false })
+Options.AutoTouchPadHaki:OnChanged(function() if Options.AutoTouchPadHaki.Value then task.spawn(function() while Options.AutoTouchPadHaki.Value do local char = player.Character local hrp = char and char:FindFirstChild("HumanoidRootPart") if hrp then for _, v in ipairs(workspace:GetDescendants()) do if v.Name:find("Pad") or v.Name:find("Haki") then local part = v:IsA("BasePart") and v or (v:IsA("Model") and v.PrimaryPart) if part then hrp.CFrame = CFrame.new(part.Position + Vector3.new(0,3,0)) break end end end end task.wait(1) end end) end end)
+Tabs.StackFraming:AddToggle("AutoRipIndra", { Title = "Auto Rip Indra", Description = "Tự động farm Boss Indra", Default = false })
+Options.AutoRipIndra:OnChanged(function() if Options.AutoRipIndra.Value then autoFarmBoss("Indra", "AutoRipIndra") end end)
+Tabs.StackFraming:AddParagraph({ Title = "Boss Soul Reaper", Content = "Tự động farm Boss Soul Reaper" })
+Tabs.StackFraming:AddToggle("AutoSoulReaper", { Title = "Auto Soul Reaper", Description = "Tự động farm Soul Reaper", Default = false })
+Options.AutoSoulReaper:OnChanged(function() if Options.AutoSoulReaper.Value then autoFarmBoss("Soul", "AutoSoulReaper") end end)
+Tabs.StackFraming:AddToggle("AutoSoulReaperHop", { Title = "Auto Soul Reaper (Hop Server)", Description = "Nhảy server tìm Soul Reaper", Default = false })
+Options.AutoSoulReaperHop:OnChanged(function() if Options.AutoSoulReaperHop.Value then hopFindBoss("Soul", "AutoSoulReaperHop", "Đã tìm thấy Soul Reaper!") end end)
+Tabs.StackFraming:AddParagraph({ Title = "Boss Dough King", Content = "Tự động farm Boss Dough King" })
+Tabs.StackFraming:AddToggle("AutoDoughKing", { Title = "Auto Dough King", Description = "Tự động farm Dough King", Default = false })
+Options.AutoDoughKing:OnChanged(function() if Options.AutoDoughKing.Value then autoFarmBoss("Dough", "AutoDoughKing") end end)
+Tabs.StackFraming:AddToggle("AutoDoughKingHop", { Title = "Auto Dough King (Hop Server)", Description = "Nhảy server tìm Dough King", Default = false })
+Options.AutoDoughKingHop:OnChanged(function() if Options.AutoDoughKingHop.Value then hopFindBoss("Dough", "AutoDoughKingHop", "Đã tìm thấy Dough King!") end end)
+Tabs.StackFraming:AddParagraph({ Title = "Darkbeard", Content = "Tự động farm Boss Darkbeard" })
+Tabs.StackFraming:AddToggle("AutoDarkbeard", { Title = "Auto Darkbeard", Description = "Tự động farm Darkbeard", Default = false })
+Options.AutoDarkbeard:OnChanged(function() if Options.AutoDarkbeard.Value then autoFarmBoss("Darkbeard", "AutoDarkbeard") end end)
+Tabs.StackFraming:AddToggle("AutoDarkbeardHop", { Title = "Auto Darkbeard (Hop Server)", Description = "Nhảy server tìm Darkbeard", Default = false })
+Options.AutoDarkbeardHop:OnChanged(function() if Options.AutoDarkbeardHop.Value then hopFindBoss("Darkbeard", "AutoDarkbeardHop", "Đã tìm thấy Darkbeard!") end end)
+
+-- ========================
+-- TAB: FRAMING OTHER
+-- ========================
+
+Tabs.FramingOther:AddParagraph({ Title = "Fishing", Content = "Tự động câu cá" })
+Tabs.FramingOther:AddDropdown("SelectRod", { Title = "Select Rod", Description = "Chọn cần câu sử dụng", Values = { "Fishing Rod","Gold Rod","Shack Rod","Shell Rod","Treasure Rod" }, Multi = false, Default = 1 })
+Tabs.FramingOther:AddDropdown("SelectBait", { Title = "Select Bait", Description = "Chọn mồi câu sử dụng", Values = { "Basic Bait","Kelp Bait","Good Bait","Abyssal Bait","Frozen Bait","Epic Bait","Carnivore Bait" }, Multi = false, Default = 1 })
+Tabs.FramingOther:AddButton({ Title = "Buy Bait", Description = "Mua mồi câu đã chọn", Callback = function() local bait = Options.SelectBait.Value or "Basic Bait" pcall(function() RS.Remotes.BuyBait:FireServer(bait) end) Fluent:Notify({ Title = "Fishing", Content = "Đã mua " .. bait .. "!", Duration = 3 }) end })
+Tabs.FramingOther:AddToggle("AutoDoneQuestFishing", { Title = "Auto Done Quest Fishing", Description = "Tự động hoàn thành nhiệm vụ câu cá", Default = false })
+Options.AutoDoneQuestFishing:OnChanged(function() if Options.AutoDoneQuestFishing.Value then task.spawn(function() while Options.AutoDoneQuestFishing.Value do pcall(function() RS.Remotes.CompleteFishingQuest:FireServer() end) task.wait(2) end end) end end)
+Tabs.FramingOther:AddToggle("SellFishing", { Title = "Sell Fishing", Description = "Tự động bán cá đã câu được", Default = false })
+Options.SellFishing:OnChanged(function() if Options.SellFishing.Value then task.spawn(function() while Options.SellFishing.Value do pcall(function() RS.Remotes.SellFish:FireServer() end) task.wait(2) end end) end end)
+Tabs.FramingOther:AddToggle("SpamSkillZFishing", { Title = "Spam Skill Z If Fishing", Description = "Tự động spam skill Z khi câu cá", Default = false })
+Options.SpamSkillZFishing:OnChanged(function() if Options.SpamSkillZFishing.Value then task.spawn(function() while Options.SpamSkillZFishing.Value do pcall(function() local VIM = game:GetService("VirtualInputManager") VIM:SendKeyEvent(true, "Z", false, game) task.wait(0.1) VIM:SendKeyEvent(false, "Z", false, game) end) task.wait(0.3) end end) end end)
+
+Tabs.FramingOther:AddParagraph({ Title = "Quest Dragon", Content = "Tự động làm nhiệm vụ Dragon" })
+Tabs.FramingOther:AddToggle("AutoDojoTrainer", { Title = "Auto Dojo Trainer", Description = "Tự động farm Dojo Trainer", Default = false })
+Options.AutoDojoTrainer:OnChanged(function() if Options.AutoDojoTrainer.Value then autoFarmBoss("Dojo", "AutoDojoTrainer") end end)
+Tabs.FramingOther:AddToggle("AutoDragonHunter", { Title = "Auto Dragon Hunter", Description = "Tự động farm Dragon Hunter", Default = false })
+Options.AutoDragonHunter:OnChanged(function() if Options.AutoDragonHunter.Value then autoFarmBoss("Dragon", "AutoDragonHunter") end end)
+
+Tabs.FramingOther:AddParagraph({ Title = "Attack All Mobs", Content = "Tấn công tất cả mob và boss" })
+Tabs.FramingOther:AddToggle("AutoAttackAllMobs", { Title = "Auto Attack All Mobs And Boss", Description = "Tự động tấn công tất cả mob và boss trong phạm vi", Default = false })
+Options.AutoAttackAllMobs:OnChanged(function() if Options.AutoAttackAllMobs.Value then task.spawn(function() while Options.AutoAttackAllMobs.Value do local char = player.Character local hrp = char and char:FindFirstChild("HumanoidRootPart") if hrp then for _, v in ipairs(workspace:GetChildren()) do if v:IsA("Model") and v ~= char then local hum = v:FindFirstChild("Humanoid") local mobHRP = v:FindFirstChild("HumanoidRootPart") if hum and mobHRP and hum.Health > 0 and (hrp.Position - mobHRP.Position).Magnitude <= 500 then hrp.CFrame = CFrame.new(mobHRP.Position + Vector3.new(0,30,0)) pcall(function() RS.Remotes.Combat:FireServer("M1", v) end) end end end end task.wait(0.3) end end) end end)
+
+Tabs.FramingOther:AddParagraph({ Title = "Berry", Content = "Tự động thu thập Berry" })
+Tabs.FramingOther:AddToggle("AutoCollectBerry", { Title = "Auto Collect Berry", Description = "Tự động thu thập Berry trên map", Default = false })
+Options.AutoCollectBerry:OnChanged(function() if Options.AutoCollectBerry.Value then task.spawn(function() while Options.AutoCollectBerry.Value do local char = player.Character local hrp = char and char:FindFirstChild("HumanoidRootPart") if hrp then for _, v in ipairs(workspace:GetDescendants()) do if v.Name:find("Berry") or v.Name:find("Money") then local part = v:IsA("BasePart") and v or (v:IsA("Model") and v.PrimaryPart) if part then hrp.CFrame = CFrame.new(part.Position + Vector3.new(0,3,0)) task.wait(0.1) end end end end task.wait(0.5) end end) end end)
+Tabs.FramingOther:AddToggle("HopFindBerry", { Title = "Hop Find Berry", Description = "Nhảy server tìm Berry", Default = false })
+Options.HopFindBerry:OnChanged(function() if Options.HopFindBerry.Value then task.spawn(function() while Options.HopFindBerry.Value do local found = false for _, v in ipairs(workspace:GetDescendants()) do if v.Name:find("Berry") then found = true break end end if found then Fluent:Notify({ Title = "Framing Other", Content = "Đã tìm thấy Berry!", Duration = 3 }) Options.HopFindBerry:SetValue(false) else hopServer() end task.wait(3) end end) end end)
+
+Tabs.FramingOther:AddParagraph({ Title = "Farm Chest", Content = "Tự động farm rương kho báu" })
+Tabs.FramingOther:AddToggle("AutoChest", { Title = "Auto Chest", Description = "Tự động mở rương kho báu", Default = false })
+Options.AutoChest:OnChanged(function() if Options.AutoChest.Value then task.spawn(function() while Options.AutoChest.Value do local char = player.Character local hrp = char and char:FindFirstChild("HumanoidRootPart") if hrp then for _, v in ipairs(workspace:GetDescendants()) do if v.Name:find("Chest") then local part = v:IsA("BasePart") and v or (v:IsA("Model") and v.PrimaryPart) if part then hrp.CFrame = CFrame.new(part.Position + Vector3.new(0,3,0)) pcall(function() RS.Remotes.OpenChest:FireServer(v) end) task.wait(0.3) end end end end task.wait(1) end end) end end)
+Tabs.FramingOther:AddToggle("AutoChestHop", { Title = "Auto Chest Hop", Description = "Nhảy server tìm rương kho báu", Default = false })
+Options.AutoChestHop:OnChanged(function() if Options.AutoChestHop.Value then task.spawn(function() while Options.AutoChestHop.Value do local found = false for _, v in ipairs(workspace:GetDescendants()) do if v.Name:find("Chest") then found = true break end end if found then Fluent:Notify({ Title = "Framing Other", Content = "Đã tìm thấy Chest!", Duration = 3 }) Options.AutoChestHop:SetValue(false) else hopServer() end task.wait(3) end end) end end)
+
+Tabs.FramingOther:AddParagraph({ Title = "Raid Law", Content = "Tự động mua chip và tấn công Law" })
+Tabs.FramingOther:AddToggle("AutoBuyChipLaw", { Title = "Auto Buy Chip And Attack Law", Description = "Tự động mua chip và farm Boss Law", Default = false })
+Options.AutoBuyChipLaw:OnChanged(function() if Options.AutoBuyChipLaw.Value then task.spawn(function() while Options.AutoBuyChipLaw.Value do pcall(function() RS.Remotes.BuyChip:FireServer() end) task.wait(0.5) local char = player.Character local hrp = char and char:FindFirstChild("HumanoidRootPart") if hrp then for _, v in ipairs(workspace:GetChildren()) do if v.Name:find("Law") then local mobHRP = v:FindFirstChild("HumanoidRootPart") local hum = v:FindFirstChild("Humanoid") if mobHRP and hum and hum.Health > 0 then hrp.CFrame = CFrame.new(mobHRP.Position + Vector3.new(0,30,0)) pcall(function() RS.Remotes.Combat:FireServer("M1", v) end) end end end end task.wait(0.5) end end) end end)
+
+Tabs.FramingOther:AddParagraph({ Title = "Farm Observation", Content = "Tự động nâng cấp Observation" })
+Tabs.FramingOther:AddToggle("AutoUpObsV2", { Title = "Auto Up Observation V2", Description = "Tự động nâng cấp Observation lên V2", Default = false })
+Options.AutoUpObsV2:OnChanged(function() if Options.AutoUpObsV2.Value then task.spawn(function() while Options.AutoUpObsV2.Value do pcall(function() RS.Remotes.UpgradeObservation:FireServer() end) task.wait(1) end end) end end)
+Tabs.FramingOther:AddToggle("FarmObservation", { Title = "Farm Observation", Description = "Tự động farm để nâng Observation", Default = false })
+Options.FarmObservation:OnChanged(function() if Options.FarmObservation.Value then autoFarmBoss("", "FarmObservation") end end)
+Tabs.FramingOther:AddToggle("FarmObservationHop", { Title = "Farm Observation (Hop Server)", Description = "Nhảy server để farm Observation", Default = false })
+Options.FarmObservationHop:OnChanged(function() if Options.FarmObservationHop.Value then task.spawn(function() while Options.FarmObservationHop.Value do local found = false for _, v in ipairs(workspace:GetChildren()) do if v:IsA("Model") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then found = true break end end if found then Fluent:Notify({ Title = "Framing Other", Content = "Đã tìm server có mob!", Duration = 3 }) Options.FarmObservationHop:SetValue(false) else hopServer() end task.wait(3) end end) end end)
+
+Tabs.FramingOther:AddParagraph({ Title = "Auto Boss", Content = "Tự động farm Boss" })
+local bossList = { "All","Blox Fruit Dealer Cousin","Bobby","Yeti","Snowman","Swan","Jeremy","Greybeard","Saber Expert","Magma Admiral","Fishman Lord","Wysper","Thunder God","Smoke Admiral","Cursed Captain","Darkbeard","Rip_Indra","Cake Prince","Dough King","Soul Reaper","Mammoths","Island Empress","Leviathan","Stone","Kilo Admiral","Captain Elephant","Beautiful Pirate","Longma","Tide Keeper","Wandering Pirate","Diamond","Don Swan","Bartolomeo","Kaido" }
+Tabs.FramingOther:AddDropdown("SelectBoss", { Title = "Select Boss", Description = "Chọn boss muốn farm", Values = bossList, Multi = false, Default = 1 })
+Tabs.FramingOther:AddToggle("KillBoss", { Title = "Kill Boss", Description = "Tự động farm boss đã chọn", Default = false })
+Options.KillBoss:OnChanged(function() if Options.KillBoss.Value then task.spawn(function() while Options.KillBoss.Value do local char = player.Character local hrp = char and char:FindFirstChild("HumanoidRootPart") if hrp then local bossName = Options.SelectBoss.Value or "All" for _, v in ipairs(workspace:GetChildren()) do if v:IsA("Model") and v ~= char then local hum = v:FindFirstChild("Humanoid") local mobHRP = v:FindFirstChild("HumanoidRootPart") if hum and mobHRP and hum.Health > 0 then local nameMatch = bossName == "All" or v.Name:find(bossName) if nameMatch then hrp.CFrame = CFrame.new(mobHRP.Position + Vector3.new(0,30,0)) pcall(function() RS.Remotes.Combat:FireServer("M1", v) end) break end end end end end task.wait(0.5) end end) end end)
+Tabs.FramingOther:AddToggle("KillAllBoss", { Title = "Kill All Boss", Description = "Tự động farm tất cả boss cùng lúc", Default = false })
+Options.KillAllBoss:OnChanged(function() if Options.KillAllBoss.Value then task.spawn(function() while Options.KillAllBoss.Value do local char = player.Character local hrp = char and char:FindFirstChild("HumanoidRootPart") if hrp then for _, v in ipairs(workspace:GetChildren()) do if v:IsA("Model") and v ~= char then local hum = v:FindFirstChild("Humanoid") local mobHRP = v:FindFirstChild("HumanoidRootPart") if hum and mobHRP and hum.Health > 0 then hrp.CFrame = CFrame.new(mobHRP.Position + Vector3.new(0,30,0)) pcall(function() RS.Remotes.Combat:FireServer("M1", v) end) task.wait(0.3) end end end end task.wait(0.5) end end) end end)
+
+-- ========================
+-- CÁC TAB PLACEHOLDER
+-- ========================
+
+Tabs.FruitRaidDungeon:AddParagraph({ Title = "Fruit & Raid, Dungeon", Content = "Tính năng sẽ được thêm vào đây." })
+Tabs.SeaEvent:AddParagraph({ Title = "Sea Event", Content = "Tính năng sẽ được thêm vào đây." })
+Tabs.UpgradeRace:AddParagraph({ Title = "Upgrade Race", Content = "Tính năng sẽ được thêm vào đây." })
+Tabs.GetUpgradeItem:AddParagraph({ Title = "Get Upgrade And Item", Content = "Tính năng sẽ được thêm vào đây." })
+Tabs.VolcanoEvent:AddParagraph({ Title = "Volcano Event", Content = "Tính năng sẽ được thêm vào đây." })
+Tabs.ESP:AddParagraph({ Title = "ESP", Content = "Tính năng sẽ được thêm vào đây." })
+Tabs.PvP:AddParagraph({ Title = "PvP", Content = "Tính năng sẽ được thêm vào đây." })
+
+-- ========================
+-- TAB: WEBHOOK
+-- ========================
+
+local webhookURL = ""
+Tabs.Webhook:AddInput("WebhookURL", { Title = "Webhook URL", Description = "Nhập link Discord Webhook của bạn", Default = "", Placeholder = "https://discord.com/api/webhooks/...", Numeric = false, Finished = true, Callback = function(v) webhookURL = v end })
+Tabs.Webhook:AddButton({ Title = "Test Webhook", Description = "Gửi tin nhắn thử nghiệm tới webhook", Callback = function()
+    if webhookURL == "" then Fluent:Notify({ Title = "Webhook", Content = "Vui lòng nhập URL webhook trước!", Duration = 3 }) return end
+    local ok, err = pcall(function() game:GetService("HttpService"):PostAsync(webhookURL, game:GetService("HttpService"):JSONEncode({ content = "Banana Cat Hub - Webhook test thành công!" })) end)
+    if ok then Fluent:Notify({ Title = "Webhook", Content = "Gửi thành công!", Duration = 3 }) else Fluent:Notify({ Title = "Webhook", Content = "Lỗi: " .. tostring(err), Duration = 3 }) end
+end })
+
+-- ========================
+-- SETTINGS
+-- ========================
+
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+InterfaceManager:SetFolder("BananaCatHub")
+SaveManager:SetFolder("BananaCatHub/configs")
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+Window:SelectTab(1)
+
+Fluent:Notify({
+    Title = "Banana Cat Hub",
+    Content = "Premium Obii đã load thành công!",
+    Duration = 6
+})
+
+SaveManager:LoadAutoloadConfig()
