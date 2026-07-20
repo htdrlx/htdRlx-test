@@ -1,0 +1,242 @@
+-- ================== DỊCH VỤ & BIẾN ==================
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local CoreGui = game:GetService("CoreGui")
+
+local menuOpen = false
+local autoFarm = false
+local cameraDetached = false
+local TWEEN_SPEED = 300 -- Tốc độ bay (studs/giây)
+
+-- ================== 1. NÚT DI ĐỘNG (MOBILE TOGGLE) ==================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "MobileToggleGui"
+ScreenGui.ResetOnSpawn = false
+
+local targetGui = pcall(function() return gethui() end) and gethui() or CoreGui
+ScreenGui.Parent = targetGui
+
+local ToggleButton = Instance.new("ImageButton")
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Size = UDim2.new(0, 45, 0, 45)
+ToggleButton.Position = UDim2.new(0, 15, 0, 130)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+ToggleButton.Image = "rbxassetid://10974853372" -- Banana Cat Decal
+ToggleButton.Parent = ScreenGui
+
+-- Bo tròn + viền
+Instance.new("UICorner", ToggleButton).CornerRadius = UDim.new(0.5, 0)
+local stroke = Instance.new("UIStroke", ToggleButton)
+stroke.Color = Color3.fromRGB(70, 70, 70)
+stroke.Thickness = 1.5
+
+-- Kéo thả
+local dragging, dragInput, dragStart, startPos = false
+local isClicking = false
+
+local function updateDrag(input)
+    local delta = input.Position - dragStart
+    ToggleButton.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+ToggleButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        isClicking = true
+        dragStart = input.Position
+        startPos = ToggleButton.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+ToggleButton.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        if (input.Position - dragStart).Magnitude > 5 then
+            isClicking = false
+        end
+        updateDrag(input)
+    end
+end)
+
+-- Hiệu ứng tap (Tween)
+local function playTapAnimation()
+    local tween = TweenService:Create(ToggleButton, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 50, 0, 50)})
+    tween:Play()
+    tween.Completed:Wait()
+    TweenService:Create(ToggleButton, TweenInfo.new(0.1), {Size = UDim2.new(0, 45, 0, 45)}):Play()
+end
+
+-- Camera detach
+local function setCameraDetach(enable)
+    local cam = workspace.CurrentCamera
+    if enable then
+        cam.CameraType = Enum.CameraType.Scriptable
+    else
+        cam.CameraType = Enum.CameraType.Custom
+    end
+    cameraDetached = enable
+end
+
+-- Xử lý khi tap (bật/tắt menu)
+ToggleButton.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        if isClicking then
+            playTapAnimation()
+            menuOpen = not menuOpen
+            setCameraDetach(menuOpen)
+            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.LeftControl, false, game)
+            task.wait()
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftControl, false, game)
+        end
+    end
+end)
+
+-- ================== 2. GIAO DIỆN FLUENT UI ==================
+local Window = Fluent:CreateWindow({
+    Title = "Mobile Hub - Banana Cat 🍌",
+    SubTitle = "Auto Farm Level (Tween Speed 300)",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+local Tabs = {
+    Main = Window:AddTab({ Title = "Auto Farm", Icon = "swords" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+}
+
+local Options = Fluent.Options
+
+-- ================== 3. AUTO FARM LEVEL (TWEEN SPEED 300) ==================
+local function getNearestEnemy()
+    local character = player.Character
+    if not character then return nil end
+    local root = character:FindFirstChild("HumanoidRootPart")
+    if not root then return nil end
+
+    local nearest = nil
+    local minDist = math.huge
+    for _, obj in ipairs(workspace:GetChildren()) do
+        if obj:IsA("Model") and obj ~= character then
+            local humanoid = obj:FindFirstChildOfClass("Humanoid")
+            local hrp = obj:FindFirstChild("HumanoidRootPart")
+            if humanoid and hrp and humanoid.Health > 0 then
+                local dist = (root.Position - hrp.Position).Magnitude
+                if dist < minDist then
+                    minDist = dist
+                    nearest = obj
+                end
+            end
+        end
+    end
+    return nearest
+end
+
+local function autoFarmLoop()
+    while autoFarm do
+        local character = player.Character
+        if character then
+            local target = getNearestEnemy()
+            if target then
+                local targetHRP = target:FindFirstChild("HumanoidRootPart")
+                local charHRP = character:FindFirstChild("HumanoidRootPart")
+                if targetHRP and charHRP then
+                    local distance = (charHRP.Position - targetHRP.Position).Magnitude
+                    local tweenTime = distance / TWEEN_SPEED
+                    tweenTime = math.clamp(tweenTime, 0.1, 2) -- Giới hạn thời gian
+                    
+                    local tweenInfo = TweenInfo.new(tweenTime, Enum.EasingStyle.Linear)
+                    local tween = TweenService:Create(charHRP, tweenInfo, {CFrame = targetHRP.CFrame})
+                    tween:Play()
+                    tween.Completed:Wait()
+
+                    -- Tấn công
+                    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+                    task.wait(0.05)
+                    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+                end
+            end
+        end
+        task.wait(0.5) -- Nghỉ giữa các lần quét
+    end
+end
+
+-- Toggle Auto Farm (Đã sửa lỗi Callback)
+local ToggleAuto = Tabs.Main:AddToggle("ToggleAuto", {
+    Title = "Auto Farm Level",
+    Description = "Bay Tween 300 studs/s, tự đánh quái",
+    Default = false
+})
+
+ToggleAuto:OnChanged(function()
+    autoFarm = Options.ToggleAuto.Value
+    if autoFarm then
+        coroutine.wrap(autoFarmLoop)()
+    end
+end)
+
+Tabs.Main:AddParagraph({
+    Title = "Trạng thái",
+    Content = "Chạm nút Banana Cat để ẩn/hiện menu\nCamera tự động tách khi mở menu"
+})
+
+-- Settings: test Tween nút
+Tabs.Settings:AddButton({
+    Title = "Test Tween Button",
+    Description = "Phóng to nút Banana Cat",
+    Callback = function()
+        playTapAnimation()
+    end
+})
+
+-- ================== 4. CÀI ĐẶT UI & ĐỒNG BỘ ==================
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+
+InterfaceManager:SetFolder("MobileHubBananaCat")
+SaveManager:SetFolder("MobileHubBananaCat/SpecificGame")
+
+-- Chèn cài đặt của Fluent UI vào Tab Settings
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+Window:SelectTab(1)
+
+-- Đồng bộ camera khi dùng phím tắt (PC)
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == Enum.KeyCode.LeftControl and not gameProcessed then
+        task.wait(0.1)
+        menuOpen = not menuOpen
+        setCameraDetach(menuOpen)
+    end
+end)
+
+Fluent:Notify({
+    Title = "Mobile Hub",
+    Content = "Hub đã tải xong! Nút Banana Cat góc trái màn hình.",
+    Duration = 8
+})
+
+SaveManager:LoadAutoloadConfig()
