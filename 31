@@ -1,0 +1,300 @@
+-- ================== DỊCH VỤ & BIẾN ==================
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
+
+local menuOpen = false
+local autoFarm = false
+local autoFarmThread = nil
+local TWEEN_SPEED = 300
+local FLY_HEIGHT = 25
+local ATTACK_RANGE = 5
+local currentTarget = nil
+
+-- ================== 1. NÚT DI ĐỘNG ==================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "MobileToggleGui"
+ScreenGui.ResetOnSpawn = false
+local ok, hui = pcall(gethui)
+ScreenGui.Parent = ok and hui or CoreGui
+
+local ToggleButton = Instance.new("ImageButton")
+ToggleButton.Size = UDim2.new(0, 45, 0, 45)
+ToggleButton.Position = UDim2.new(0, 15, 0, 130)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+ToggleButton.Image = "rbxassetid://10974853372"
+ToggleButton.Parent = ScreenGui
+Instance.new("UICorner", ToggleButton).CornerRadius = UDim.new(0.5, 0)
+local stroke = Instance.new("UIStroke", ToggleButton)
+stroke.Color = Color3.fromRGB(70, 70, 70)
+stroke.Thickness = 1.5
+
+local dragging, dragInput, dragStart, startPos = false, nil, nil, nil
+local isClicking = false
+
+local function updateDrag(input)
+    local delta = input.Position - dragStart
+    ToggleButton.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+ToggleButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true; isClicking = true
+        dragStart = input.Position; startPos = ToggleButton.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+        end)
+    end
+end)
+
+ToggleButton.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        if (input.Position - dragStart).Magnitude > 5 then isClicking = false end
+        updateDrag(input)
+    end
+end)
+
+local function playTapAnimation()
+    local t = TweenService:Create(ToggleButton, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 50, 0, 50)})
+    t:Play(); t.Completed:Wait()
+    TweenService:Create(ToggleButton, TweenInfo.new(0.1), {Size = UDim2.new(0, 45, 0, 45)}):Play()
+end
+
+local function toggleMenu()
+    playTapAnimation()
+    menuOpen = not menuOpen
+    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.LeftControl, false, game)
+    task.wait()
+    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.LeftControl, false, game)
+end
+
+ToggleButton.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        if isClicking then toggleMenu() end
+        isClicking = false
+    end
+end)
+
+-- ================== 2. FLUENT UI ==================
+local Window = Fluent:CreateWindow({
+    Title = "Mobile Hub - Banana Cat 🍌",
+    SubTitle = "Auto Farm",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+local Tabs = {
+    Main = Window:AddTab({ Title = "Auto Farm", Icon = "swords" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+}
+
+local Options = Fluent.Options
+
+-- ================== 3. HELPER ==================
+local function isTargetAlive(model)
+    if not model or not model.Parent then return false end
+    local h = model:FindFirstChildOfClass("Humanoid")
+    return h ~= nil and h.Health > 0
+end
+
+local function getNearestEnemy()
+    local char = player.Character
+    if not char then return nil end
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not root then return nil end
+    local nearest, minDist = nil, math.huge
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("Model") and obj ~= char then
+            local h = obj:FindFirstChildOfClass("Humanoid")
+            local hrp = obj:FindFirstChild("HumanoidRootPart")
+            if h and hrp and h.Health > 0 then
+                local d = (root.Position - hrp.Position).Magnitude
+                if d < minDist then minDist = d; nearest = obj end
+            end
+        end
+    end
+    return nearest
+end
+
+-- ================== 4. BAY (HEARTBEAT) ==================
+local function flyTo(charHRP, targetPos)
+    local char = player.Character
+    if not char then return end
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return end
+
+    -- Tắt physics để CFrame không bị override
+    humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+
+    -- Điểm đến: cao hơn target FLY_HEIGHT studs, lùi ra ATTACK_RANGE
+    local highPos = Vector3.new(targetPos.X, targetPos.Y + FLY_HEIGHT, targetPos.Z)
+    local dir = (charHRP.Position - highPos)
+    dir = Vector3.new(dir.X, 0, dir.Z)
+    if dir.Magnitude > 0 then
+        dir = dir.Unit * ATTACK_RANGE
+    end
+    local goalPos = highPos + dir
+    local goalCF = CFrame.new(goalPos, Vector3.new(targetPos.X, goalPos.Y, targetPos.Z))
+
+    local startCF = charHRP.CFrame
+    local distance = (charHRP.Position - goalPos).Magnitude
+    local totalTime = math.clamp(distance / TWEEN_SPEED, 0.05, 3)
+    local elapsed = 0
+    local done = false
+
+    local conn
+    conn = RunService.Heartbeat:Connect(function(dt)
+        if not autoFarm then
+            done = true
+            conn:Disconnect()
+            return
+        end
+        elapsed = elapsed + dt
+        local alpha = math.clamp(elapsed / totalTime, 0, 1)
+        charHRP.CFrame = startCF:Lerp(goalCF, alpha)
+        if alpha >= 1 then
+            done = true
+            conn:Disconnect()
+        end
+    end)
+
+    while not done do
+        RunService.Heartbeat:Wait()
+    end
+
+    humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+    task.wait(0.1)
+end
+
+-- ================== 5. ATTACK ==================
+local function doAttack()
+    local sz = workspace.CurrentCamera.ViewportSize
+    VirtualInputManager:SendMouseButtonEvent(sz.X/2, sz.Y/2, 0, true, game, 1)
+    task.wait(0.05)
+    VirtualInputManager:SendMouseButtonEvent(sz.X/2, sz.Y/2, 0, false, game, 1)
+end
+
+-- ================== 6. MAIN LOOP ==================
+local function autoFarmLoop()
+    while autoFarm do
+        local char = player.Character
+        local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+        if not (char and humanoid and humanoid.Health > 0) then
+            task.wait(0.5); continue
+        end
+
+        local charHRP = char:FindFirstChild("HumanoidRootPart")
+        if not charHRP then task.wait(0.5); continue end
+
+        -- Chỉ đổi target khi target cũ chết
+        if not isTargetAlive(currentTarget) then
+            currentTarget = getNearestEnemy()
+        end
+
+        if isTargetAlive(currentTarget) then
+            local targetHRP = currentTarget:FindFirstChild("HumanoidRootPart")
+            if targetHRP then
+                local dist = (charHRP.Position - targetHRP.Position).Magnitude
+                if dist > ATTACK_RANGE + 1 then
+                    flyTo(charHRP, targetHRP.Position)
+                end
+                if isTargetAlive(currentTarget) then
+                    doAttack()
+                else
+                    currentTarget = nil
+                end
+            end
+        end
+
+        task.wait(0.3)
+    end
+
+    -- Reset
+    currentTarget = nil
+    local char = player.Character
+    local h = char and char:FindFirstChildOfClass("Humanoid")
+    if h then h:ChangeState(Enum.HumanoidStateType.GettingUp) end
+end
+
+-- ================== 7. TOGGLE ==================
+local ToggleAuto = Tabs.Main:AddToggle("ToggleAuto", {
+    Title = "Auto Farm Level",
+    Description = "Bay cao 25 studs, khóa target đến khi chết",
+    Default = false
+})
+
+ToggleAuto:OnChanged(function()
+    autoFarm = Options.ToggleAuto.Value
+    if autoFarm then
+        if autoFarmThread then task.cancel(autoFarmThread) end
+        currentTarget = nil
+        autoFarmThread = task.spawn(autoFarmLoop)
+    else
+        if autoFarmThread then task.cancel(autoFarmThread) end
+        currentTarget = nil
+        local char = player.Character
+        local h = char and char:FindFirstChildOfClass("Humanoid")
+        if h then h:ChangeState(Enum.HumanoidStateType.GettingUp) end
+    end
+end)
+
+Tabs.Main:AddButton({
+    Title = "Reset Mục Tiêu",
+    Description = "Chọn lại target gần nhất",
+    Callback = function()
+        currentTarget = nil
+        Fluent:Notify({ Title = "Reset", Content = "Đã xóa mục tiêu!", Duration = 3 })
+    end
+})
+
+Tabs.Main:AddParagraph({
+    Title = "Thông tin",
+    Content = "✅ Bay Heartbeat\n✅ Độ cao 25 studs\n✅ Khóa target đến khi chết mới đổi\n✅ Không free cam"
+})
+
+Tabs.Settings:AddButton({
+    Title = "Test Button",
+    Callback = function() playTapAnimation() end
+})
+
+-- ================== 8. SAVE ==================
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+InterfaceManager:SetFolder("MobileHubBananaCat")
+SaveManager:SetFolder("MobileHubBananaCat/SpecificGame")
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+Window:SelectTab(1)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == Enum.KeyCode.LeftControl and not gameProcessed then
+        menuOpen = not menuOpen
+    end
+end)
+
+Fluent:Notify({
+    Title = "Mobile Hub",
+    Content = "Load xong! ✅",
+    Duration = 8
+})
+
+SaveManager:LoadAutoloadConfig()
