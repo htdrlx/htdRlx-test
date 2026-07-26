@@ -1,0 +1,530 @@
+-- ================== SERVICES ==================
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+local Players             = game:GetService("Players")
+local TweenService        = game:GetService("TweenService")
+local UserInputService    = game:GetService("UserInputService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local CoreGui             = game:GetService("CoreGui")
+local RunService          = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+
+-- Xoá chuột ảo hoàn toàn
+UserInputService.MouseIconEnabled = false
+RunService.RenderStepped:Connect(function()
+    VirtualInputManager:SendMouseMoveEvent(-9999, -9999, game)
+end)
+
+-- ================== BIẾN ==================
+local menuOpen        = false
+local autoFarm        = false
+local autoFarmThread  = nil
+local hoverConn       = nil
+local TWEEN_SPEED     = 300
+local FLY_HEIGHT      = 22
+local ATTACK_RANGE    = 5
+local HITBOX_SIZE     = 30   -- hitbox size
+local CLUSTER_RADIUS  = 80
+local currentTarget   = nil
+local currentZone     = nil
+local originalHRPSize = nil
+local questDoneForZone = {}
+
+-- ================== HITBOX (chỉ resize, không ảnh hưởng visual tool) ==================
+local function expandHitbox(enable)
+    local char = player.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    if enable then
+        if not originalHRPSize then originalHRPSize = hrp.Size end
+        -- Chỉ mở rộng theo Y để không làm to súng/tool
+        hrp.Size = Vector3.new(originalHRPSize.X, HITBOX_SIZE, originalHRPSize.Z)
+    else
+        if originalHRPSize then hrp.Size = originalHRPSize; originalHRPSize = nil end
+    end
+end
+player.CharacterAdded:Connect(function() originalHRPSize = nil end)
+
+-- ================== NÚT DI ĐỘNG ==================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "MobileToggleGui"; ScreenGui.ResetOnSpawn = false
+local ok, hui = pcall(gethui); ScreenGui.Parent = ok and hui or CoreGui
+
+local ToggleButton = Instance.new("ImageButton")
+ToggleButton.Size = UDim2.new(0,45,0,45); ToggleButton.Position = UDim2.new(0,15,0,130)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(25,25,25)
+ToggleButton.Image = "rbxassetid://10974853372"; ToggleButton.Parent = ScreenGui
+Instance.new("UICorner", ToggleButton).CornerRadius = UDim.new(0.5,0)
+local uiStroke = Instance.new("UIStroke", ToggleButton)
+uiStroke.Color = Color3.fromRGB(70,70,70); uiStroke.Thickness = 1.5
+
+local dragging, dragInput, dragStart, dragStartPos = false, nil, nil, nil
+local isClicking = false
+local function updateDrag(i)
+    local d = i.Position - dragStart
+    ToggleButton.Position = UDim2.new(dragStartPos.X.Scale, dragStartPos.X.Offset+d.X, dragStartPos.Y.Scale, dragStartPos.Y.Offset+d.Y)
+end
+ToggleButton.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+        dragging=true; isClicking=true; dragStart=i.Position; dragStartPos=ToggleButton.Position
+        i.Changed:Connect(function() if i.UserInputState==Enum.UserInputState.End then dragging=false end end)
+    end
+end)
+ToggleButton.InputChanged:Connect(function(i)
+    if i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch then dragInput=i end
+end)
+UserInputService.InputChanged:Connect(function(i)
+    if i==dragInput and dragging then
+        if (i.Position-dragStart).Magnitude>5 then isClicking=false end; updateDrag(i)
+    end
+end)
+local function playTap()
+    local t=TweenService:Create(ToggleButton,TweenInfo.new(0.1,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Size=UDim2.new(0,50,0,50)})
+    t:Play(); t.Completed:Wait()
+    TweenService:Create(ToggleButton,TweenInfo.new(0.1),{Size=UDim2.new(0,45,0,45)}):Play()
+end
+local function toggleMenu()
+    playTap(); menuOpen=not menuOpen
+    VirtualInputManager:SendKeyEvent(true,Enum.KeyCode.LeftControl,false,game); task.wait()
+    VirtualInputManager:SendKeyEvent(false,Enum.KeyCode.LeftControl,false,game)
+end
+ToggleButton.InputEnded:Connect(function(i)
+    if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
+        if isClicking then toggleMenu() end; isClicking=false
+    end
+end)
+
+-- ================== FLUENT UI ==================
+local Window = Fluent:CreateWindow({
+    Title="Mobile Hub 🍌", SubTitle="Auto Farm + Zone System",
+    TabWidth=160, Size=UDim2.fromOffset(580,460),
+    Acrylic=true, Theme="Dark", MinimizeKey=Enum.KeyCode.LeftControl
+})
+local Tabs = {
+    Main = Window:AddTab({Title="Auto Farm", Icon="swords"}),
+    Settings = Window:AddTab({Title="Settings", Icon="settings"})
+}
+local Options = Fluent.Options
+
+-- ================== ĐỌC LEVEL ==================
+local function getPlayerLevel()
+    local ls = player:FindFirstChild("leaderstats")
+    if ls then
+        for _, v in ipairs(ls:GetChildren()) do
+            if (v:IsA("IntValue") or v:IsA("NumberValue")) then
+                local n = v.Name:lower()
+                if n:find("level") or n:find("lv") or n:find("c.p") then return v.Value end
+            end
+        end
+    end
+    local gui = player:FindFirstChild("PlayerGui")
+    if gui then
+        for _, obj in ipairs(gui:GetDescendants()) do
+            if obj:IsA("TextLabel") or obj:IsA("TextButton") then
+                local txt = obj.Text or ""
+                local num = txt:match("[Cc][ấa]p%s*(%d+)") or txt:match("[Ll][Ee][Vv][Ee][Ll]%s*(%d+)") or txt:match("[Ll][Vv]%.?%s*(%d+)")
+                if num then return tonumber(num) end
+            end
+        end
+    end
+    return 1
+end
+
+-- ================== PHÂN BIỆT QUÁI vs NPC ==================
+-- Quái: có Humanoid, health thay đổi được (MaxHealth > 0 và không phải NPC tĩnh)
+-- NPC: tên chứa keyword HOẶC health luôn = MaxHealth
+
+local NPC_KW = {"quest","npc","mission","give","merchant","elder","chief","nhi.m","shop","store","trainer","vendor"}
+local enemyHealthCache = {} -- cache health lần trước để detect quái (health giảm)
+
+local function isEnemy(model)
+    if not model or model == player.Character then return false end
+    local h = model:FindFirstChildOfClass("Humanoid")
+    local hrp = model:FindFirstChild("HumanoidRootPart")
+    if not h or not hrp then return false end
+    if h.Health <= 0 then return false end
+
+    -- Loại NPC theo tên
+    local name = model.Name:lower()
+    for _, kw in ipairs(NPC_KW) do
+        if name:find(kw) then return false end
+    end
+
+    -- NPC thường có MaxHealth rất cao hoặc = 0 (immortal)
+    if h.MaxHealth <= 0 then return false end
+
+    -- Cache để detect health có giảm không (quái thật thì health giảm khi bị đánh)
+    local id = tostring(model)
+    if not enemyHealthCache[id] then
+        enemyHealthCache[id] = h.Health
+    end
+
+    return true
+end
+
+-- ================== TÌM QUÁI/ZONE ==================
+local function getEnemyClusters()
+    local clusters = {}
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if isEnemy(obj) then
+            local hrp = obj:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                local pos = hrp.Position
+                local added = false
+                for _, c in ipairs(clusters) do
+                    if (c.center - pos).Magnitude < CLUSTER_RADIUS then
+                        c.count = c.count + 1
+                        c.center = (c.center*(c.count-1) + pos) / c.count
+                        added = true; break
+                    end
+                end
+                if not added then table.insert(clusters, {center=pos, count=1}) end
+            end
+        end
+    end
+    table.sort(clusters, function(a,b) return a.count > b.count end)
+    return clusters
+end
+
+local function getBestZone()
+    local char = player.Character
+    if not char then return nil end
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not root then return nil end
+    local clusters = getEnemyClusters()
+    if #clusters == 0 then return nil end
+    local best, bestScore = nil, -math.huge
+    for _, c in ipairs(clusters) do
+        local dist = (root.Position - c.center).Magnitude
+        local score = c.count / math.max(dist, 1)
+        if score > bestScore then bestScore=score; best=c end
+    end
+    return best
+end
+
+local function getNearestEnemyInZone(zoneCenter)
+    local char = player.Character
+    if not char then return nil end
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not root then return nil end
+    local nearest, minDist = nil, math.huge
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if isEnemy(obj) then
+            local hrp = obj:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                local distToZone = (zoneCenter - hrp.Position).Magnitude
+                if distToZone < CLUSTER_RADIUS then
+                    local d = (root.Position - hrp.Position).Magnitude
+                    if d < minDist then minDist=d; nearest=obj end
+                end
+            end
+        end
+    end
+    return nearest
+end
+
+local function isTargetAlive(model)
+    if not model or not model.Parent then return false end
+    local h = model:FindFirstChildOfClass("Humanoid")
+    return h ~= nil and h.Health > 0
+end
+
+-- ================== TÌM NPC QUEST ==================
+local function findQuestNPC(zoneCenter)
+    local nearest, minDist = nil, math.huge
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("Model") and obj ~= player.Character and not isEnemy(obj) then
+            local hrp = obj:FindFirstChild("HumanoidRootPart") or obj.PrimaryPart
+            if hrp then
+                local h = obj:FindFirstChildOfClass("Humanoid")
+                -- NPC: có humanoid nhưng không phải quái, hoặc tên quest keyword
+                local name = obj.Name:lower()
+                local isNPC = false
+                for _, kw in ipairs(NPC_KW) do
+                    if name:find(kw) then isNPC=true; break end
+                end
+                if not isNPC and h then isNPC = true end -- có humanoid nhưng qua filter isEnemy
+                if isNPC then
+                    local dist = (zoneCenter - hrp.Position).Magnitude
+                    if dist < 300 and dist < minDist then minDist=dist; nearest=obj end
+                end
+            end
+        end
+    end
+    return nearest
+end
+
+-- ================== BAY (HEARTBEAT + CAM GIẬT) ==================
+local function stopHover()
+    if hoverConn then hoverConn:Disconnect(); hoverConn=nil end
+    local char = player.Character
+    local h = char and char:FindFirstChildOfClass("Humanoid")
+    if h then h:ChangeState(Enum.HumanoidStateType.GettingUp) end
+    workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
+end
+
+local function flyTo(charHRP, targetPos)
+    local char = player.Character
+    if not char then return end
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return end
+
+    -- Giữ Physics state liên tục trong lúc bay
+    humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+
+    local cam = workspace.CurrentCamera
+    cam.CameraType = Enum.CameraType.Scriptable
+    local camOffset = cam.CFrame.Position - charHRP.Position
+
+    local highPos = Vector3.new(targetPos.X, targetPos.Y + FLY_HEIGHT, targetPos.Z)
+    local dir = Vector3.new(charHRP.Position.X - targetPos.X, 0, charHRP.Position.Z - targetPos.Z)
+    local offset = dir.Magnitude > 0 and dir.Unit * ATTACK_RANGE or Vector3.new(0,0,ATTACK_RANGE)
+    local goalPos = highPos + offset
+    local goalCF = CFrame.new(goalPos, Vector3.new(targetPos.X, goalPos.Y, targetPos.Z))
+
+    local startCF = charHRP.CFrame
+    local distance = (charHRP.Position - goalPos).Magnitude
+    local totalTime = math.clamp(distance / TWEEN_SPEED, 0.05, 3)
+    local elapsed = 0; local done = false
+
+    local conn
+    conn = RunService.Heartbeat:Connect(function(dt)
+        if not autoFarm then done=true; conn:Disconnect(); return end
+        -- Liên tục giữ Physics state để không bị reset
+        humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+        elapsed = elapsed + dt
+        local alpha = math.clamp(elapsed/totalTime, 0, 1)
+        local snapped = math.floor(alpha/0.05)*0.05
+        local newCF = startCF:Lerp(goalCF, snapped)
+        charHRP.CFrame = newCF
+        -- Cam giật theo nhân vật
+        cam.CFrame = CFrame.new(newCF.Position + camOffset, newCF.Position)
+        if alpha >= 1 then done=true; conn:Disconnect() end
+    end)
+
+    while not done do RunService.Heartbeat:Wait() end
+    cam.CameraType = Enum.CameraType.Custom
+    task.wait(0.05)
+end
+
+-- ================== HOVER LƠ LỬNG (GIỮ TRẠNG THÁI) ==================
+local function startHover()
+    stopHover()
+    local char = player.Character
+    if not char then return end
+    local charHRP = char:FindFirstChild("HumanoidRootPart")
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if not charHRP or not humanoid then return end
+
+    -- Lưu vị trí hover hiện tại
+    local hoverCF = charHRP.CFrame
+
+    hoverConn = RunService.Heartbeat:Connect(function()
+        if not autoFarm then stopHover(); return end
+        local char2 = player.Character
+        local hrp2 = char2 and char2:FindFirstChild("HumanoidRootPart")
+        local hum2 = char2 and char2:FindFirstChildOfClass("Humanoid")
+        if not hrp2 or not hum2 then stopHover(); return end
+
+        -- Liên tục giữ Physics để không bị rơi
+        hum2:ChangeState(Enum.HumanoidStateType.Physics)
+
+        local tHRP = currentTarget and currentTarget:FindFirstChild("HumanoidRootPart")
+        if tHRP and isTargetAlive(currentTarget) then
+            -- Update hover position theo target
+            local hoverY = tHRP.Position.Y + FLY_HEIGHT
+            local dir = Vector3.new(hrp2.Position.X - tHRP.Position.X, 0, hrp2.Position.Z - tHRP.Position.Z)
+            local off = dir.Magnitude > 0 and dir.Unit * ATTACK_RANGE or Vector3.new(0,0,ATTACK_RANGE)
+            hoverCF = CFrame.new(
+                Vector3.new(tHRP.Position.X+off.X, hoverY, tHRP.Position.Z+off.Z),
+                Vector3.new(tHRP.Position.X, hoverY, tHRP.Position.Z)
+            )
+        end
+        -- Ghim CFrame mỗi frame
+        hrp2.CFrame = hoverCF
+    end)
+end
+
+-- ================== ATTACK ==================
+local attackButton = nil
+local function findAttackButton()
+    local gui = player:FindFirstChild("PlayerGui")
+    if not gui then return nil end
+    local sz = workspace.CurrentCamera.ViewportSize
+    local best = nil; local bestY = 0
+    for _, obj in ipairs(gui:GetDescendants()) do
+        if obj:IsA("ImageButton") and obj.Visible then
+            local ok2, absp = pcall(function() return obj.AbsolutePosition end)
+            local ok3, abss = pcall(function() return obj.AbsoluteSize end)
+            if ok2 and ok3 and absp.Y > sz.Y * 0.55 then
+                -- Lấy nút gần giữa X nhất ở dưới màn hình
+                local centerX = absp.X + abss.X/2
+                local distFromCenter = math.abs(centerX - sz.X/2)
+                if distFromCenter < sz.X * 0.25 and absp.Y > bestY then
+                    bestY = absp.Y; best = obj
+                end
+            end
+        end
+    end
+    return best
+end
+
+local function doAttack()
+    if not attackButton or not attackButton.Parent then
+        attackButton = findAttackButton()
+    end
+    if attackButton and attackButton.Parent then
+        local ok2, absp = pcall(function() return attackButton.AbsolutePosition end)
+        local ok3, abss = pcall(function() return attackButton.AbsoluteSize end)
+        if ok2 and ok3 then
+            local cx = absp.X + abss.X/2
+            local cy = absp.Y + abss.Y/2
+            VirtualInputManager:SendMouseButtonEvent(cx, cy, 0, true, game, 1)
+            task.wait(0.05)
+            VirtualInputManager:SendMouseButtonEvent(cx, cy, 0, false, game, 1)
+        end
+    else
+        local sz = workspace.CurrentCamera.ViewportSize
+        VirtualInputManager:SendMouseButtonEvent(sz.X/2, sz.Y*0.82, 0, true, game, 1)
+        task.wait(0.05)
+        VirtualInputManager:SendMouseButtonEvent(sz.X/2, sz.Y*0.82, 0, false, game, 1)
+    end
+end
+
+-- ================== NHẬN QUEST ==================
+local function interactNPC(npc)
+    local hrp = npc:FindFirstChild("HumanoidRootPart") or npc.PrimaryPart
+    if not hrp then return end
+    local char = player.Character
+    local charHRP = char and char:FindFirstChild("HumanoidRootPart")
+    if charHRP then flyTo(charHRP, hrp.Position) end
+    for _, key in ipairs({Enum.KeyCode.F, Enum.KeyCode.E}) do
+        VirtualInputManager:SendKeyEvent(true, key, false, game); task.wait(0.15)
+        VirtualInputManager:SendKeyEvent(false, key, false, game)
+    end
+    local sz = workspace.CurrentCamera.ViewportSize
+    VirtualInputManager:SendMouseButtonEvent(sz.X/2, sz.Y/2, 0, true, game, 1); task.wait(0.1)
+    VirtualInputManager:SendMouseButtonEvent(sz.X/2, sz.Y/2, 0, false, game, 1)
+    task.wait(1.5)
+end
+
+-- ================== MAIN LOOP ==================
+local function autoFarmLoop()
+    while autoFarm do
+        local char = player.Character
+        local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+        if not (char and humanoid and humanoid.Health > 0) then
+            stopHover(); task.wait(0.5); continue
+        end
+        local charHRP = char:FindFirstChild("HumanoidRootPart")
+        if not charHRP then task.wait(0.5); continue end
+
+        -- BƯỚC 1: Tìm zone
+        if not currentZone then
+            currentZone = getBestZone()
+            if currentZone then
+                local zKey = math.floor(currentZone.center.X/50).."_"..math.floor(currentZone.center.Z/50)
+                -- BƯỚC 2: Nhận quest (1 lần/zone)
+                if not questDoneForZone[zKey] then
+                    local npc = findQuestNPC(currentZone.center)
+                    if npc then
+                        Fluent:Notify({Title="Quest", Content="Đang bay đến NPC nhận nhiệm vụ...", Duration=3})
+                        interactNPC(npc)
+                    end
+                    questDoneForZone[zKey] = true
+                end
+                -- Bay vào zone
+                flyTo(charHRP, currentZone.center)
+                Fluent:Notify({
+                    Title = "Zone mới",
+                    Content = "Level "..getPlayerLevel().." → "..currentZone.count.." quái",
+                    Duration = 4
+                })
+            else
+                task.wait(2); continue
+            end
+        end
+
+        -- BƯỚC 3: Farm quái trong zone
+        if not isTargetAlive(currentTarget) then
+            stopHover(); expandHitbox(false)
+            currentTarget = getNearestEnemyInZone(currentZone.center)
+            if not currentTarget then
+                -- Hết quái → reset zone
+                currentZone = nil; task.wait(1); continue
+            end
+            local tHRP = currentTarget:FindFirstChild("HumanoidRootPart")
+            if tHRP then
+                flyTo(charHRP, tHRP.Position)
+                expandHitbox(true)
+                startHover()
+            end
+        end
+
+        if isTargetAlive(currentTarget) then
+            doAttack()
+        else
+            stopHover(); expandHitbox(false); currentTarget = nil
+        end
+
+        task.wait(0.25)
+    end
+
+    stopHover(); expandHitbox(false)
+    currentTarget = nil; currentZone = nil
+end
+
+-- ================== UI ==================
+Tabs.Main:AddToggle("ToggleAuto", {
+    Title = "Auto Farm",
+    Description = "Zone → Quest → Farm tự động",
+    Default = false
+}):OnChanged(function()
+    autoFarm = Options.ToggleAuto.Value
+    if autoFarm then
+        if autoFarmThread then task.cancel(autoFarmThread) end
+        currentTarget=nil; currentZone=nil
+        autoFarmThread = task.spawn(autoFarmLoop)
+    else
+        if autoFarmThread then task.cancel(autoFarmThread) end
+        currentTarget=nil; currentZone=nil
+        stopHover(); expandHitbox(false)
+    end
+end)
+
+Tabs.Main:AddButton({
+    Title = "Reset Zone",
+    Description = "Tìm lại zone + quest",
+    Callback = function()
+        stopHover(); expandHitbox(false)
+        currentTarget=nil; currentZone=nil; questDoneForZone={}
+        Fluent:Notify({Title="Reset", Content="Tìm zone mới...", Duration=3})
+    end
+})
+
+Tabs.Main:AddParagraph({
+    Title = "Luồng hoạt động",
+    Content = "1️⃣ Tìm zone đông quái nhất\n2️⃣ Nhận quest NPC trong zone\n3️⃣ Bay cao 22, hover lơ lửng\n4️⃣ Hitbox 30 để attack từ xa\n5️⃣ Hết quái → tìm zone mới"
+})
+
+Tabs.Settings:AddButton({Title="Test Button", Callback=function() playTap() end})
+
+-- ================== SAVE ==================
+SaveManager:SetLibrary(Fluent); InterfaceManager:SetLibrary(Fluent)
+SaveManager:IgnoreThemeSettings(); SaveManager:SetIgnoreIndexes({})
+InterfaceManager:SetFolder("MobileHubBananaCat")
+SaveManager:SetFolder("MobileHubBananaCat/SpecificGame")
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+Window:SelectTab(1)
+
+UserInputService.InputBegan:Connect(function(i, gp)
+    if i.KeyCode == Enum.KeyCode.LeftControl and not gp then menuOpen = not menuOpen end
+end)
+
+Fluent:Notify({Title="Mobile Hub", Content="Load xong! Hitbox 30 ✅", Duration=8})
+SaveManager:LoadAutoloadConfig()
