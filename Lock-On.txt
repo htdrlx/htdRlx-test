@@ -1,0 +1,234 @@
+-- ===== CẤU HÌNH =====
+local CONFIG = {
+    AimPart = "HumanoidRootPart",
+    MaxDistance = 400,
+    LockKey = Enum.KeyCode.LeftControl,
+    IgnoreWalls = true,
+    TargetTeam = false,
+    Smoothness = 0.5,
+}
+
+-- ===== KHỞI TẠO =====
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+local AimlockEnabled = false
+local FixedMode = false
+local CurrentTarget = nil
+
+-- ===== GIAO DIỆN =====
+local ScreenGui = Instance.new("ScreenGui", (gethui and gethui()) or LocalPlayer:WaitForChild("PlayerGui"))
+ScreenGui.Name = "HTDrobloxAimlockPro"
+ScreenGui.ResetOnSpawn = false
+
+-- Nút Aimlock
+local ToggleButton = Instance.new("ImageButton", ScreenGui)
+ToggleButton.Size = UDim2.new(0, 70, 0, 70)
+ToggleButton.Position = UDim2.new(0.8, 0, 0.35, 0)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+ToggleButton.BackgroundTransparency = 0.3
+ToggleButton.Draggable = true
+Instance.new("UICorner", ToggleButton).CornerRadius = UDim.new(1, 0)
+
+local UIStroke = Instance.new("UIStroke", ToggleButton)
+UIStroke.Color = Color3.fromRGB(255, 255, 255)
+UIStroke.Thickness = 1.5
+
+local LockIcon = Instance.new("ImageLabel", ToggleButton)
+LockIcon.Size = UDim2.new(0, 40, 0, 40)
+LockIcon.Position = UDim2.new(0.5, -20, 0.5, -20)
+LockIcon.BackgroundTransparency = 1
+LockIcon.Image = "rbxassetid://6031094900" -- shift lock logo
+LockIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
+
+-- Nút Fixed Mode
+local FixedButton = Instance.new("ImageButton", ScreenGui)
+FixedButton.Size = UDim2.new(0, 70, 0, 70)
+FixedButton.Position = UDim2.new(0.8, 0, 0.47, 0)
+FixedButton.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+FixedButton.BackgroundTransparency = 0.3
+FixedButton.Draggable = true
+local FixedCorner = Instance.new("UICorner", FixedButton)
+FixedCorner.CornerRadius = UDim.new(1, 0)
+
+local FixedStroke = Instance.new("UIStroke", FixedButton)
+FixedStroke.Color = Color3.fromRGB(255, 255, 255)
+FixedStroke.Thickness = 1.5
+
+local FixedLabel = Instance.new("TextLabel", FixedButton)
+FixedLabel.Size = UDim2.new(1, 0, 1, 0)
+FixedLabel.BackgroundTransparency = 1
+FixedLabel.Text = "FIX"
+FixedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+FixedLabel.TextScaled = true
+FixedLabel.Font = Enum.Font.GothamBold
+
+-- ===== TẠO CROSSHAIR CHẾ ĐỘ HITBOX =====
+local CrosshairColor = Color3.fromRGB(0, 255, 255)
+local TargetGui = Instance.new("BillboardGui")
+TargetGui.Name = "AimlockCrosshair"
+TargetGui.AlwaysOnTop = true
+TargetGui.Size = UDim2.new(5, 0, 5, 0)
+TargetGui.LightInfluence = 0
+
+local Container = Instance.new("Frame", TargetGui)
+Container.Size = UDim2.new(1, 0, 1, 0)
+Container.BackgroundTransparency = 1
+
+local function makeScaleLine(wScale, hScale, pos, rot)
+    local line = Instance.new("Frame", Container)
+    line.BackgroundColor3 = CrosshairColor
+    line.BorderSizePixel = 0
+    line.Size = UDim2.new(wScale, 0, hScale, 0)
+    line.Position = pos
+    line.AnchorPoint = Vector2.new(0.5, 0.5)
+    line.Rotation = rot
+end
+
+makeScaleLine(0.25, 0.03, UDim2.new(0.15, 0, 0.15, 0), -45)
+makeScaleLine(0.25, 0.03, UDim2.new(0.85, 0, 0.15, 0), 45)
+makeScaleLine(0.25, 0.03, UDim2.new(0.15, 0, 0.85, 0), 45)
+makeScaleLine(0.25, 0.03, UDim2.new(0.85, 0, 0.85, 0), -45)
+
+local dot = Instance.new("Frame", Container)
+dot.BackgroundColor3 = CrosshairColor
+dot.Size = UDim2.new(0.08, 0, 0.08, 0)
+dot.Position = UDim2.new(0.5, 0, 0.5, 0)
+dot.AnchorPoint = Vector2.new(0.5, 0.5)
+Instance.new("UICorner", dot).CornerRadius = UDim.new(1, 0)
+
+-- ===== HÀM KIỂM TRA MỤC TIÊU TỐT NHẤT =====
+local function getBestTarget()
+    local char = LocalPlayer.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return nil end
+
+    local root = char.HumanoidRootPart
+    local bestTarget = nil
+    local shortestDistance = math.huge
+    local viewportCenter = Camera.ViewportSize / 2
+
+    for _, model in ipairs(workspace:GetDescendants()) do
+        if model:IsA("Model") and model ~= char then
+            local hum = model:FindFirstChildOfClass("Humanoid")
+            local targetPart = model:FindFirstChild(CONFIG.AimPart)
+
+            if hum and hum.Health > 0 and targetPart and not model:FindFirstChildOfClass("ForceField") then
+                if CONFIG.TargetTeam then
+                    local player = Players:GetPlayerFromCharacter(model)
+                    if player and player.Team == LocalPlayer.Team then continue end
+                end
+
+                local distToTarget = (root.Position - targetPart.Position).Magnitude
+                if distToTarget <= CONFIG.MaxDistance then
+                    if not CONFIG.IgnoreWalls then
+                        local rayParams = RaycastParams.new()
+                        rayParams.FilterType = Enum.RaycastFilterType.Exclude
+                        rayParams.FilterDescendantsInstances = {char, model}
+                        local rayResult = workspace:Raycast(Camera.CFrame.Position, (targetPart.Position - Camera.CFrame.Position).Unit * distToTarget, rayParams)
+                        if rayResult then continue end
+                    end
+
+                    local screenPos, onScreen = Camera:WorldToViewportPoint(targetPart.Position)
+                    if onScreen then
+                        local screenDist = (Vector2.new(screenPos.X, screenPos.Y) - viewportCenter).Magnitude
+                        if screenDist < shortestDistance then
+                            shortestDistance = screenDist
+                            bestTarget = model
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return bestTarget
+end
+
+-- ===== CẬP NHẬT UI =====
+local function updateUI()
+    if AimlockEnabled then
+        if CurrentTarget then
+            UIStroke.Color = CrosshairColor
+            LockIcon.ImageColor3 = CrosshairColor
+        else
+            UIStroke.Color = Color3.fromRGB(255, 255, 50)
+            LockIcon.ImageColor3 = Color3.fromRGB(255, 255, 50)
+        end
+    else
+        UIStroke.Color = Color3.fromRGB(255, 255, 255)
+        LockIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
+        TargetGui.Parent = nil
+    end
+
+    if FixedMode then
+        FixedCorner.CornerRadius = UDim.new(0, 0) -- mất coe thành vuông
+        FixedStroke.Color = Color3.fromRGB(255, 80, 80)
+        FixedLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+    else
+        FixedCorner.CornerRadius = UDim.new(1, 0)
+        FixedStroke.Color = Color3.fromRGB(255, 255, 255)
+        FixedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end
+end
+
+-- ===== VÒNG LẶP KHÓA CAMERA =====
+RunService:BindToRenderStep("HTDrobloxHardLock", Enum.RenderPriority.Camera.Value + 200, function()
+    if not AimlockEnabled then return end
+
+    local needNewTarget = false
+    if not CurrentTarget or not CurrentTarget.Parent then
+        needNewTarget = true
+    else
+        local hum = CurrentTarget:FindFirstChildOfClass("Humanoid")
+        local part = CurrentTarget:FindFirstChild(CONFIG.AimPart)
+        if not hum or hum.Health <= 0 or not part then
+            needNewTarget = true
+        end
+    end
+
+    if needNewTarget then
+        CurrentTarget = getBestTarget()
+        updateUI()
+    end
+
+    if CurrentTarget then
+        local targetPart = CurrentTarget:FindFirstChild(CONFIG.AimPart)
+        if targetPart then
+            if TargetGui.Parent ~= targetPart then
+                TargetGui.Parent = targetPart
+            end
+            local targetCFrame = CFrame.lookAt(Camera.CFrame.Position, targetPart.Position)
+            Camera.CFrame = Camera.CFrame:Lerp(targetCFrame, CONFIG.Smoothness)
+        end
+    end
+end)
+
+-- ===== BẬT/TẮT =====
+local function toggleAimlock()
+    if FixedMode then return end -- không tắt được khi đang Fixed
+    AimlockEnabled = not AimlockEnabled
+    if not AimlockEnabled then
+        CurrentTarget = nil
+    end
+    updateUI()
+end
+
+local function toggleFixed()
+    FixedMode = not FixedMode
+    if FixedMode then
+        AimlockEnabled = true -- bật aimlock luôn
+    end
+    updateUI()
+end
+
+ToggleButton.MouseButton1Click:Connect(toggleAimlock)
+FixedButton.MouseButton1Click:Connect(toggleFixed)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == CONFIG.LockKey then
+        toggleAimlock()
+    end
+end)
