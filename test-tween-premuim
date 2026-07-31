@@ -1,0 +1,29 @@
+-- [[ MOON HUB - FIRST TELEPORT SCRIPT ]] --
+-- CFrame / Tween Teleport anti-rubberband
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local LocalPlayer = Players.LocalPlayer
+
+local function TeleportTo(cframe, speed)
+    local character = LocalPlayer.Character
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        local hrp = character.HumanoidRootPart
+        local distance = (hrp.Position - cframe.Position).Magnitude
+        local time = distance / (speed or 300) -- Chỉnh speed tầm 250-300 để bypass anti-cheat
+        
+        local tweenInfo = TweenInfo.new(
+            time, 
+            Enum.EasingStyle.Linear, 
+            Enum.EasingDirection.Out
+        )
+        
+        local tween = TweenService:Create(hrp, tweenInfo, {CFrame = cframe})
+        tween:Play()
+        return tween
+    end
+end
+
+-- Cách dùng: TeleportTo(CFrame.new(X, Y, Z))
+-- Ví dụ dịch chuyển:
+-- TeleportTo(CFrame.new(0, 100, 0), 250)
