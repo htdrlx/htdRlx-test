@@ -1,0 +1,296 @@
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local TeleportService = game:GetService("TeleportService")
+
+local player = Players.LocalPlayer
+
+-- ================= FLAGS (khai bĂ¡o TRÆ¯á»C cĂ¡c hĂ m) =================
+-- âœ… FIX 1: Chuyá»ƒn lĂªn Ä‘Ă¢y Ä‘á»ƒ TweenToFruit tháº¥y Ä‘Ăºng giĂ¡ trá»‹
+local FruitEnabled = true
+local HopEnabled   = true
+local HopRequested = false
+
+-- ================= THAM Sá» =================
+local TweenSpeed  = 300
+local FruitHeight = 3       -- bay sĂ¡t trĂ¡i Ä‘á»ƒ dá»… nháº·t hÆ¡n (22 quĂ¡ cao)
+local HopAfter    = 80 * 60
+
+local SessionStart = os.clock()
+local CurrentFruit = "KhĂ´ng cĂ³"
+local CollectedFruits = {}
+local CollectCount    = 0
+
+-- ================= UI (panel nhá» gá»n) =================
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name         = "XCrzyHub"
+screenGui.ResetOnSpawn = false
+screenGui.Parent       = player:WaitForChild("PlayerGui")
+
+-- âœ… FIX 3: Panel 300Ă—110 thay vĂ¬ full-screen
+local frame = Instance.new("Frame")
+frame.Size                 = UDim2.new(0, 300, 0, 110)
+frame.Position             = UDim2.new(0, 12, 0.5, -55)
+frame.BackgroundColor3     = Color3.fromRGB(8, 8, 8)
+frame.BackgroundTransparency = 0.35
+frame.BorderSizePixel      = 0
+frame.Parent               = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 8)
+corner.Parent       = frame
+
+-- viá»n tráº¯ng má»ng hÆ¡n (1.5 thay vĂ¬ 2)
+local stroke = Instance.new("UIStroke")
+stroke.Color     = Color3.fromRGB(255, 255, 255)
+stroke.Thickness = 1.5
+stroke.Parent    = frame
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size                = UDim2.new(1, -10, 0, 26)
+titleLabel.Position            = UDim2.new(0, 5, 0, 5)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Font                = Enum.Font.GothamBold
+titleLabel.Text                = "âœ¦ X-Crzy Hub | Kaitun [beta] Fruit"
+titleLabel.TextColor3          = Color3.fromRGB(255, 255, 255)
+titleLabel.TextScaled          = true
+titleLabel.Parent              = frame
+
+local divider = Instance.new("Frame")
+divider.Size             = UDim2.new(1, -16, 0, 1)
+divider.Position         = UDim2.new(0, 8, 0, 34)
+divider.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+divider.BackgroundTransparency = 0.55
+divider.BorderSizePixel  = 0
+divider.Parent           = frame
+
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size                  = UDim2.new(1, -12, 1, -42)
+statusLabel.Position              = UDim2.new(0, 6, 0, 38)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Font                  = Enum.Font.SourceSans
+statusLabel.TextColor3            = Color3.fromRGB(210, 210, 210)
+statusLabel.TextSize              = 13
+statusLabel.TextWrapped           = true
+statusLabel.TextXAlignment        = Enum.TextXAlignment.Left
+statusLabel.Text = "Fruit: ---\nServer Time: ---\nNext Hop: ---\nCollected: 0"
+statusLabel.Parent = frame
+
+-- ================= DANH SĂCH TRĂI =================
+local FruitNames = {
+    ["Rocket-Rocket"]=true,  ["Spin-Spin"]=true,      ["Blade-Blade"]=true,
+    ["Spring-Spring"]=true,  ["Bomb-Bomb"]=true,       ["Smoke-Smoke"]=true,
+    ["Spike-Spike"]=true,    ["Flame-Flame"]=true,     ["Falcon-Falcon"]=true,
+    ["Ice-Ice"]=true,        ["Sand-Sand"]=true,        ["Dark-Dark"]=true,
+    ["Diamond-Diamond"]=true,["Light-Light"]=true,     ["Rubber-Rubber"]=true,
+    ["Barrier-Barrier"]=true,["Ghost-Ghost"]=true,     ["Magma-Magma"]=true,
+    ["Quake-Quake"]=true,    ["Buddha-Buddha"]=true,   ["Love-Love"]=true,
+    ["Spider-Spider"]=true,  ["Sound-Sound"]=true,     ["Phoenix-Phoenix"]=true,
+    ["Portal-Portal"]=true,  ["Rumble-Rumble"]=true,   ["Pain-Pain"]=true,
+    ["Blizzard-Blizzard"]=true,["Gravity-Gravity"]=true,["Mammoth-Mammoth"]=true,
+    ["T-Rex-T-Rex"]=true,    ["Dough-Dough"]=true,     ["Shadow-Shadow"]=true,
+    ["Venom-Venom"]=true,    ["Control-Control"]=true, ["Spirit-Spirit"]=true,
+    ["Leopard-Leopard"]=true,["Kitsune-Kitsune"]=true, ["Yeti-Yeti"]=true,
+    ["Gas-Gas"]=true,        ["Creation-Creation"]=true
+}
+
+-- ================= HĂ€M Há»– TRá»¢ =================
+local function FormatTime(seconds)
+    seconds = math.max(0, math.floor(seconds))
+    return string.format("%02d:%02d:%02d",
+        math.floor(seconds / 3600),
+        math.floor((seconds % 3600) / 60),
+        seconds % 60)
+end
+
+local function GetCharacter()
+    local character = player.Character
+    if not character then return end
+    local hrp      = character:FindFirstChild("HumanoidRootPart")
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if not hrp or not humanoid or humanoid.Health <= 0 then return end
+    return character, hrp, humanoid
+end
+
+local function IsFruitObject(obj)
+    if not obj then return false end
+    -- Chá»‰ nháº­n Tool hoáº·c Model/Part trĂ¹ng tĂªn chĂ­nh xĂ¡c, KHĂ”NG dĂ¹ng :find("fruit")
+    -- vĂ¬ "fruit" cĂ³ thá»ƒ match tĂªn NPC hoáº·c GUI element
+    return FruitNames[obj.Name] == true
+end
+
+-- âœ… FIX NPC: Kiá»ƒm tra object cĂ³ náº±m trong model chá»©a Humanoid khĂ´ng
+-- (NPC, player character, Backpack Ä‘á»u bá»‹ loáº¡i bá»)
+local function IsInsideAnyCharacter(obj)
+    local p = obj.Parent
+    while p and p ~= workspace do
+        if p:IsA("Backpack") then return true end          -- trong tĂºi ai Ä‘Ă³
+        if p:FindFirstChildOfClass("Humanoid") then        -- trong NPC / character
+            return true
+        end
+        p = p.Parent
+    end
+    return false
+end
+
+local function FindFruit()
+    local _, hrp = GetCharacter()
+    if not hrp then return end
+    local closest, closestDist = nil, math.huge
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        -- âœ… FIX NPC: bá» qua náº¿u náº±m trong character/NPC/Backpack
+        if IsFruitObject(obj) and not IsInsideAnyCharacter(obj) then
+            local part
+            if obj:IsA("Tool") then
+                part = obj:FindFirstChild("Handle")
+            elseif obj:IsA("BasePart") then
+                part = obj
+            else
+                part = obj:FindFirstChildWhichIsA("BasePart", true)
+            end
+            if part then
+                local d = (hrp.Position - part.Position).Magnitude
+                if d < closestDist then
+                    closestDist = d
+                    closest     = obj
+                end
+            end
+        end
+    end
+    return closest
+end
+
+local function GetFruitPart(fruit)
+    if not fruit then return end
+    if fruit:IsA("Tool")     then return fruit:FindFirstChild("Handle") end
+    if fruit:IsA("BasePart") then return fruit end
+    return fruit:FindFirstChildWhichIsA("BasePart", true)
+end
+
+-- ================= NHáº¶T TRĂI =================
+local function CollectFruit(fruit)
+    if not fruit or not fruit.Parent then return false end
+    if fruit:IsA("Tool") then
+        if fruit.Parent ~= player.Backpack and fruit.Parent ~= player.Character then
+            local ok, err = pcall(function() fruit.Parent = player.Backpack end)
+            if ok then
+                CollectCount += 1
+                table.insert(CollectedFruits, fruit.Name)
+                print("[XCrzy] Nháº·t: " .. fruit.Name .. " (Tá»•ng: " .. CollectCount .. ")")
+                return true
+            else
+                warn("[XCrzy] Lá»—i nháº·t: " .. tostring(err))
+            end
+        end
+    end
+    return false
+end
+
+-- ================= TWEEN BAY Äáº¾N TRĂI =================
+local CurrentTween = nil
+
+local function StopTween()
+    if CurrentTween then
+        pcall(function() CurrentTween:Cancel() end)
+        CurrentTween = nil
+    end
+end
+
+local function TweenToFruit(fruit)
+    local character, hrp, humanoid = GetCharacter()
+    local part = GetFruitPart(fruit)
+    if not character or not hrp or not humanoid or not part then return end
+
+    StopTween()
+
+    local targetPos = part.Position + Vector3.new(0, FruitHeight, 0)
+    local dist      = (hrp.Position - targetPos).Magnitude
+
+    if dist <= 4 then
+        CollectFruit(fruit)
+        return
+    end
+
+    local duration = math.max(dist / TweenSpeed, 0.05)
+
+    -- âœ… FIX 2: Anchor HRP â†’ cháº·n trá»ng lá»±c, tween khĂ´ng bá»‹ Ä‘Ă¡nh báº¡i bá»Ÿi physics
+    hrp.Anchored          = true
+    humanoid.AutoRotate   = false
+
+    CurrentTween = TweenService:Create(
+        hrp,
+        TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut),
+        { CFrame = CFrame.new(targetPos) }
+    )
+    CurrentTween:Play()
+
+    local finished = false
+    local conn
+    conn = CurrentTween.Completed:Connect(function()
+        finished = true
+        conn:Disconnect()
+    end)
+
+    -- âœ… FIX 1: FruitEnabled giá» Ä‘Ăºng (= true), loop cháº¡y bĂ¬nh thÆ°á»ng
+    while not finished and FruitEnabled do
+        if not fruit.Parent or not part.Parent then break end
+        local d = (hrp.Position - part.Position).Magnitude
+        if d <= 6 then
+            CollectFruit(fruit)
+            break
+        end
+        RunService.Heartbeat:Wait()
+    end
+
+    StopTween()
+    pcall(function() if conn then conn:Disconnect() end end)
+
+    -- Thá»­ nháº·t thĂªm 1 láº§n sau khi bay xong (safety net)
+    if fruit and fruit.Parent then
+        CollectFruit(fruit)
+    end
+
+    -- âœ… FIX 2: Unanchor + khĂ´i phá»¥c humanoid
+    hrp.Anchored = false
+    if humanoid.Parent then
+        humanoid.AutoRotate = true
+        pcall(function() humanoid:ChangeState(Enum.HumanoidStateType.GettingUp) end)
+    end
+end
+
+-- ================= LUá»’NG CHĂNH =================
+task.spawn(function()
+    while FruitEnabled do
+        local fruit = FindFruit()
+        if fruit then
+            CurrentFruit = fruit.Name
+            TweenToFruit(fruit)
+        else
+            CurrentFruit = "KhĂ´ng cĂ³"
+            task.wait(0.5)
+        end
+        task.wait(0.15)
+    end
+end)
+
+task.spawn(function()
+    while task.wait(1) do
+        local elapsed   = os.clock() - SessionStart
+        local fruit     = FindFruit()
+        CurrentFruit    = fruit and fruit.Name or "KhĂ´ng cĂ³"
+        local remaining = HopAfter - elapsed
+
+        statusLabel.Text = string.format(
+            "Fruit: %s\nServer: %s\nHop in: %s\nCollected: %d",
+            CurrentFruit,
+            FormatTime(elapsed),
+            remaining > 0 and FormatTime(remaining) or "READY",
+            CollectCount
+        )
+
+        if HopEnabled and elapsed >= HopAfter and not fruit and not HopRequested then
+            HopRequested = true
+            pcall(function() TeleportService:Teleport(game.PlaceId, player) end)
+        end
+    end
+end)
