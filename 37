@@ -1,0 +1,97 @@
+-- [[ X-CRAZY HUB - TELEPORT TOOL SYSTEM ]] --
+-- Created for: TDanh (Danh)
+-- Device: Android / PC Supported
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+
+-- 1. Hàm Thông Báo XANH LÈ (X-CRAZY Style)
+local function SendNotify(title, text)
+    local NotifyGui = CoreGui:FindFirstChild("XCrazyNotify") or Instance.new("ScreenGui", CoreGui)
+    NotifyGui.Name = "XCrazyNotify"
+    
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(0, 250, 0, 55)
+    Frame.Position = UDim2.new(1, -260, 0.8, 0)
+    Frame.BackgroundColor3 = Color3.fromRGB(10, 20, 10)
+    Frame.BorderSizePixel = 0
+    Frame.Parent = NotifyGui
+    
+    local UICorner = Instance.new("UICorner", Frame)
+    UICorner.CornerRadius = UDim.new(0, 8)
+    
+    local UIStroke = Instance.new("UIStroke", Frame)
+    UIStroke.Color = Color3.fromRGB(0, 255, 127) -- Xanh dạ quang rực rỡ
+    UIStroke.Thickness = 2
+    
+    local TitleLabel = Instance.new("TextLabel", Frame)
+    TitleLabel.Text = title
+    TitleLabel.TextSize = 14
+    TitleLabel.Font = Enum.Font.GothamBold
+    TitleLabel.TextColor3 = Color3.fromRGB(0, 255, 127)
+    TitleLabel.Position = UDim2.new(0, 10, 0, 6)
+    TitleLabel.Size = UDim2.new(1, -20, 0, 18)
+    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TitleLabel.BackgroundTransparency = 1
+    
+    local TextLabel = Instance.new("TextLabel", Frame)
+    TextLabel.Text = text
+    TextLabel.TextSize = 12
+    TextLabel.Font = Enum.Font.Gotham
+    TextLabel.TextColor3 = Color3.fromRGB(200, 255, 200)
+    TextLabel.Position = UDim2.new(0, 10, 0, 25)
+    TextLabel.Size = UDim2.new(1, -20, 0, 20)
+    TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TextLabel.BackgroundTransparency = 1
+    
+    task.delay(2.5, function()
+        Frame:Destroy()
+    end)
+end
+
+-- 2. Tạo Tool "Teleport" cho Danh
+local function CreateTeleportTool()
+    -- Xóa Tool cũ nếu đã tồn tại
+    if LocalPlayer.Backpack:FindFirstChild("Teleport") then
+        LocalPlayer.Backpack.Teleport:Destroy()
+    end
+    
+    local Tool = Instance.new("Tool")
+    Tool.Name = "Teleport" -- Nút bấm trong Backpack
+    Tool.RequiresHandle = false
+    Tool.CanBeDropped = false
+    Tool.Parent = LocalPlayer.Backpack
+    
+    -- Khi cầm Tool và Click/Chạm màn hình
+    Tool.Activated:Connect(function()
+        local character = LocalPlayer.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            local hrp = character.HumanoidRootPart
+            local targetPos = Mouse.Hit.Position
+            
+            -- Tính khoảng cách & Tween chống anti-cheat
+            local targetCFrame = CFrame.new(targetPos + Vector3.new(0, 3, 0))
+            local distance = (hrp.Position - targetPos).Magnitude
+            local speed = 300 -- Tốc độ lướt
+            local time = distance / speed
+            
+            local tween = TweenService:Create(hrp, TweenInfo.new(time, Enum.EasingStyle.Linear), {CFrame = targetCFrame})
+            tween:Play()
+            
+            SendNotify("X-CRAZY TELEPORT", "Dịch chuyển thành công: " .. math.floor(distance) .. "m!")
+        end
+    end)
+end
+
+-- 3. Khởi chạy & Tự load lại khi Respawn
+CreateTeleportTool()
+LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(1)
+    CreateTeleportTool()
+end)
+
+-- Pop Up Thông Báo Load X-CRAZY HUB
+SendNotify("X-CRAZY HUB LOADED", "Xin chào Danh! Teleport Tool đã sẵn sàng 🔥")
