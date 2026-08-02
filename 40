@@ -1,0 +1,38 @@
+-- Đặt cái này vào StarterPlayer -> StarterPlayerScripts (LocalScript)
+local TextChatService = game:GetService("TextChatService")
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local localPlayer = Players.LocalPlayer
+
+-- Hàm gọi API dịch thuật (Ví dụ gọi qua Webhook hoặc Server Script của bạn để né Roblox chặn HttpService ở Client)
+local function translateText(rawText)
+    -- Vì Roblox chặn Client gọi HttpService trực tiếp ra ngoài, 
+    -- bạn cần bắn RemoteEvent lên Server để Server gọi API dịch (Google/DeepL/OpenAI) rồi trả kết quả về.
+    -- Hoặc nếu dùng dịch vụ bên thứ 3 hỗ trợ Lua thuần thì táng thẳng vào đây.
+    
+    -- Đoạn này giả lập thay đổi từ lóng cho nhanh nếu chưa có API:
+    local translated = rawText
+    translated = string.gsub(translated, "gg", "trận hay")
+    translated = string.gsub(translated, "bro", "ông tướng")
+    translated = string.gsub(translated, "wtf", "vcl")
+    
+    return translated
+end
+
+-- Bắt sự kiện chat mới
+TextChatService.MessageReceived:Connect(function(textChatMessage)
+    if textChatMessage.TextSource then
+        local sender = Players:GetPlayerByUserId(textChatMessage.TextSource.UserId)
+        
+        if sender and sender ~= localPlayer then
+            local originalText = textChatMessage.Text
+            local hackedText = translateText(originalText)
+            
+            -- In ra kiểu bố láo không sợ bố con thằng nào, đè lên chat cũ
+            print("[DỊCH THÔ " .. sender.Name .. "]: " .. hackedText)
+            
+            -- Nếu muốn nó hiện hẳn lên bong bóng chat trên đầu nhân vật hoặc UI riêng:
+            -- (Phần này cậu có thể tự vẽ một cái BillboardGui nhỏ trên đầu nhân vật để hiển thị bản dịch thô)
+        end
+    end
+end)
