@@ -1,0 +1,175 @@
+-- X-crzay hub -blox fruit by T-Danh dz
+-- sea Event up v4
+
+local _xCfg={AimPart="HumanoidRootPart",MaxDistance=400,LockKey=Enum.KeyCode.LeftControl,IgnoreWalls=true,TargetTeam=false}
+local _xPlr=game:GetService("Players")
+local _xRun=game:GetService("RunService")
+local _xUIS=game:GetService("UserInputService")
+local _xTwS=game:GetService("TweenService")
+local _xLPl=_xPlr.LocalPlayer
+local _xCam=workspace.CurrentCamera
+
+local _xAim=false
+local _xTgt=nil
+local _xCTw=nil
+
+local _xSGu=Instance.new("ScreenGui",(gethui and gethui())or _xLPl:WaitForChild("PlayerGui"))
+_xSGu.Name="X-crzay hub -blox fruit by T-Danh dz"
+_xSGu.ResetOnSpawn=false
+
+local _xTBt=Instance.new("ImageButton",_xSGu)
+_xTBt.Size=UDim2.new(0,70,0,70)
+_xTBt.Position=UDim2.new(0.8,0,0.4,0)
+_xTBt.BackgroundColor3=Color3.fromRGB(15,15,15)
+_xTBt.BackgroundTransparency=0.3
+_xTBt.Draggable=true
+Instance.new("UICorner",_xTBt).CornerRadius=UDim.new(1,0)
+
+local _xUSk=Instance.new("UIStroke",_xTBt)
+_xUSk.Color=Color3.fromRGB(255,255,255)
+_xUSk.Thickness=1.5
+
+local _xLIc=Instance.new("ImageLabel",_xTBt)
+_xLIc.Size=UDim2.new(0,40,0,40)
+_xLIc.Position=UDim2.new(0.5,-20,0.5,-20)
+_xLIc.BackgroundTransparency=1
+_xLIc.Image="rbxassetid://109508733644147"
+_xLIc.ImageColor3=Color3.fromRGB(255,255,255)
+
+local _xChC=Color3.fromRGB(0,255,255)
+local _xTGu=Instance.new("BillboardGui")
+_xTGu.Name="AimlockCrosshair"
+_xTGu.AlwaysOnTop=true
+_xTGu.Size=UDim2.new(5,0,5,0)
+_xTGu.LightInfluence=0
+
+local _xCnt=Instance.new("Frame",_xTGu)
+_xCnt.Size=UDim2.new(1,0,1,0)
+_xCnt.BackgroundTransparency=1
+
+local function _xMkL(_xW,_xH,_xP,_xR)
+    local _xFr=Instance.new("Frame",_xCnt)
+    _xFr.BackgroundColor3=_xChC
+    _xFr.BorderSizePixel=0
+    _xFr.Size=UDim2.new(_xW,0,_xH,0)
+    _xFr.Position=_xP
+    _xFr.AnchorPoint=Vector2.new(0.5,0.5)
+    _xFr.Rotation=_xR
+end
+
+_xMkL(0.25,0.03,UDim2.new(0.15,0,0.15,0),-45)
+_xMkL(0.25,0.03,UDim2.new(0.85,0,0.15,0),45)
+_xMkL(0.25,0.03,UDim2.new(0.15,0,0.85,0),45)
+_xMkL(0.25,0.03,UDim2.new(0.85,0,0.85,0),-45)
+
+local _xDot=Instance.new("Frame",_xCnt)
+_xDot.BackgroundColor3=_xChC
+_xDot.Size=UDim2.new(0.08,0,0.08,0)
+_xDot.Position=UDim2.new(0.5,0,0.5,0)
+_xDot.AnchorPoint=Vector2.new(0.5,0.5)
+Instance.new("UICorner",_xDot).CornerRadius=UDim.new(1,0)
+
+local function _xGBT()
+    local _xChr=_xLPl.Character
+    if not _xChr or not _xChr:FindFirstChild("HumanoidRootPart") then return nil end
+    local _xRt=_xChr.HumanoidRootPart
+    local _xBst=nil
+    local _xSht=math.huge
+    local _xVpc=_xCam.ViewportSize/2
+    for _,_xMdl in ipairs(workspace:GetDescendants()) do
+        if _xMdl:IsA("Model") and _xMdl~=_xChr then
+            local _xHm=_xMdl:FindFirstChildOfClass("Humanoid")
+            local _xPt=_xMdl:FindFirstChild(_xCfg.AimPart)
+            if _xHm and _xHm.Health>0 and _xPt and not _xMdl:FindFirstChildOfClass("ForceField") then
+                if _xCfg.TargetTeam then
+                    local _xPl2=_xPlr:GetPlayerFromCharacter(_xMdl)
+                    if _xPl2 and _xPl2.Team==_xLPl.Team then continue end
+                end
+                local _xDs=(_xRt.Position-_xPt.Position).Magnitude
+                if _xDs<=_xCfg.MaxDistance then
+                    if not _xCfg.IgnoreWalls then
+                        local _xRP=RaycastParams.new()
+                        _xRP.FilterType=Enum.RaycastFilterType.Exclude
+                        _xRP.FilterDescendantsInstances={_xChr,_xMdl}
+                        local _xRR=workspace:Raycast(_xCam.CFrame.Position,(_xPt.Position-_xCam.CFrame.Position).Unit*_xDs,_xRP)
+                        if _xRR then continue end
+                    end
+                    local _xSP,_xOn=_xCam:WorldToViewportPoint(_xPt.Position)
+                    if _xOn then
+                        local _xSD=(Vector2.new(_xSP.X,_xSP.Y)-_xVpc).Magnitude
+                        if _xSD<_xSht then
+                            _xSht=_xSD
+                            _xBst=_xMdl
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return _xBst
+end
+
+local function _xUUI()
+    if _xAim then
+        if _xTgt then
+            _xUSk.Color=_xChC
+            _xLIc.ImageColor3=_xChC
+        else
+            _xUSk.Color=Color3.fromRGB(255,255,50)
+            _xLIc.ImageColor3=Color3.fromRGB(255,255,50)
+        end
+    else
+        _xUSk.Color=Color3.fromRGB(255,255,255)
+        _xLIc.ImageColor3=Color3.fromRGB(255,255,255)
+        _xTGu.Parent=nil
+    end
+end
+
+_xRun:BindToRenderStep("_xHrdLck",Enum.RenderPriority.Camera.Value+200,function()
+    if not _xAim then
+        if _xCTw then _xCTw:Cancel();_xCTw=nil end
+        return
+    end
+    local _xNw=false
+    if not _xTgt or not _xTgt.Parent then
+        _xNw=true
+    else
+        local _xH2=_xTgt:FindFirstChildOfClass("Humanoid")
+        local _xP2=_xTgt:FindFirstChild(_xCfg.AimPart)
+        if not _xH2 or _xH2.Health<=0 or not _xP2 then _xNw=true end
+    end
+    if _xNw then
+        if _xCTw then _xCTw:Cancel();_xCTw=nil end
+        _xTgt=_xGBT()
+        _xUUI()
+    end
+    if _xTgt then
+        local _xTP=_xTgt:FindFirstChild(_xCfg.AimPart)
+        if _xTP then
+            if _xTGu.Parent~=_xTP then _xTGu.Parent=_xTP end
+            _xCam.CameraType=Enum.CameraType.Scriptable
+            local _xTI=TweenInfo.new(0.08,Enum.EasingStyle.Linear,Enum.EasingDirection.Out)
+            local _xGl={CFrame=CFrame.lookAt(_xCam.CFrame.Position,_xTP.Position)}
+            if _xCTw then _xCTw:Cancel() end
+            _xCTw=_xTwS:Create(_xCam,_xTI,_xGl)
+            _xCTw:Play()
+        end
+    end
+end)
+
+local function _xTAl()
+    _xAim=not _xAim
+    if not _xAim then
+        _xTgt=nil
+        if _xCTw then _xCTw:Cancel();_xCTw=nil end
+        _xCam.CameraType=Enum.CameraType.Custom
+    end
+    _xUUI()
+end
+
+_xTBt.MouseButton1Click:Connect(_xTAl)
+
+_xUIS.InputBegan:Connect(function(_xIn,_xGP)
+    if _xGP then return end
+    if _xIn.KeyCode==_xCfg.LockKey then _xTAl() end
+end)
