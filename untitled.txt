@@ -56,9 +56,9 @@ end
 
 game:GetService("StarterGui"):SetCore("SendNotification", {
 
-        Title = "check Version",
+        Title = "X-crzay hub ",
 
-        Text = "Loading...",
+        Text = "đang tải...",
 
         Duration = 5
 
@@ -4954,7 +4954,7 @@ MainButton.Size = UDim2.new(0, 55, 0, 55)
 
 MainButton.Position = UDim2.new(0, 10, 1, -58)
 
-MainButton.Image = "rbxassetid://126329543253349"
+MainButton.Image = "rbxassetid://81213277023664"
 
 MainButton.AutoButtonColor = false
 
@@ -5206,11 +5206,11 @@ local Library = loadstring(game:HttpGet("https://pastefy.app/eVNXx71A/raw"))()
 
 local Window = Library:MakeWindow({
 
-    Title = "Redz Hub [BETA ACCESS] : Blox Fruits ",
+    Title = "X-crzay Hub [BETA] : Blox Fruits ",
 
     SubTitle = "remake version not real by  Skira Hub",
 
-    ScriptFolder = "SkitringX Hub"
+    ScriptFolder = "remake by T-Danh EZ"
 
 })
 
@@ -5244,11 +5244,21 @@ Discord = Window:MakeTab({
 
 
 
-Status = Window:MakeTab({
+Main = Window:MakeTab({
 
-    Title = "Status Servers",
+    Title = "Main Farm",
 
-    Icon = "barchart"
+    Icon = "rbxassetid://7733960981"
+
+})
+
+
+
+Stack = Window:MakeTab({
+
+    Title = "sub Farming",
+
+    Icon = "swords"
 
 })
 
@@ -5274,26 +5284,6 @@ Settings = Window:MakeTab({
 
 
 
-Main = Window:MakeTab({
-
-    Title = "Main Farming",
-
-    Icon = "7733960981"
-
-})
-
-
-
-Stack = Window:MakeTab({
-
-    Title = "Stack Farming",
-
-    Icon = "rbxassetid://13075622619"
-
-})
-
-
-
 Fish = Window:MakeTab({
 
     Title = "Fishing",
@@ -5306,7 +5296,7 @@ Fish = Window:MakeTab({
 
 Server = Window:MakeTab({
 
-    Title = "Hop Farming",
+    Title = "Hop",
 
     Icon = "wifi"
 
@@ -5324,11 +5314,11 @@ Sea = Window:MakeTab({
 
 
 
-Leviathan = Window:MakeTab({
+Status = Window:MakeTab({
 
-    Title = "Leviathan Event",
+    Title = "Status Servers",
 
-    Icon = "fish"
+    Icon = "barchart"
 
 })
 
@@ -5336,9 +5326,9 @@ Leviathan = Window:MakeTab({
 
 Kitsune = Window:MakeTab({
 
-    Title = "Leviathan Event",
+    Title = "Islands",
 
-    Icon = "cookie"
+    Icon = "palmtree"
 
 })
 
@@ -5359,16 +5349,6 @@ Fruits = Window:MakeTab({
     Title = "Fruits and Raids",
 
     Icon = "apple"
-
-})
-
-
-
-Dungeon = Window:MakeTab({
-
-    Title = "Dungeon",
-
-    Icon = "cherry"
 
 })
 
@@ -5418,7 +5398,7 @@ Travel = Window:MakeTab({
 
     Title = "Teleport",
 
-    Icon = "palmtree"
+    Icon = ""
 
 })
 
@@ -5444,7 +5424,7 @@ Player = Window:MakeTab({
 
 
 
-NewUpdate:AddParagraph("Cre", "SkitringX , Night Mystic, astra, Bone hub , support blox fruits ")
+NewUpdate:AddParagraph("Cre", "SkitringX , Night Mystic, Topi Hub, remake by T-Danh DZ, Support Blox Fruits ")
 
 
 
@@ -6090,7 +6070,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "buy",
 
             Content = "Do You Want Buy Cutlass Sword?",
 
@@ -6138,7 +6118,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Dual Katana?",
 
@@ -6186,7 +6166,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Iron Mace?",
 
@@ -6234,7 +6214,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Triple Katana?",
 
@@ -6282,7 +6262,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Pipe?",
 
@@ -6330,7 +6310,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Dual-Headed Blade?",
 
@@ -6378,7 +6358,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Soul Cane?",
 
@@ -6426,7 +6406,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Bisento?",
 
@@ -6474,7 +6454,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Get Pole V2?",
 
@@ -6522,7 +6502,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Legendary Sword?",
 
@@ -6574,7 +6554,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy True Triple Katana?",
 
@@ -6626,7 +6606,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Dark Step?",
 
@@ -6674,7 +6654,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Electric?",
 
@@ -6722,7 +6702,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Fishman Karate?",
 
@@ -6770,7 +6750,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Dragon Breath?",
 
@@ -6824,7 +6804,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Superhuman?",
 
@@ -6872,7 +6852,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Death Step?",
 
@@ -6920,7 +6900,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Sharkman Karate?",
 
@@ -6972,7 +6952,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Electric Claw?",
 
@@ -7020,7 +7000,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Dragon Talon?",
 
@@ -7068,7 +7048,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Godhuman?",
 
@@ -7116,7 +7096,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Sanguine Art?",
 
@@ -7172,7 +7152,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Slingshot?",
 
@@ -7220,7 +7200,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Musket?",
 
@@ -7268,7 +7248,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Flintlock?",
 
@@ -7316,7 +7296,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Refined Flintlock?",
 
@@ -7364,7 +7344,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Dual Flintlock?",
 
@@ -7412,7 +7392,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Cannon?",
 
@@ -7460,7 +7440,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buy Kabucha?",
 
@@ -7514,7 +7494,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Change to Ghoul Race?",
 
@@ -7562,7 +7542,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Change to Cyborg Race?",
 
@@ -7610,7 +7590,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Change to Draco Race?",
 
@@ -7682,7 +7662,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Random Race?",
 
@@ -7701,7 +7681,7 @@ Shop:AddButton({
                 },
 
                 {
-
+ 
                     Title = "Cancel",
 
                     Callback = function() end
@@ -7734,7 +7714,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "buy",
 
             Content = "Do You Want Reset Stats?",
 
@@ -7786,7 +7766,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Buso Haki?",
 
@@ -7834,7 +7814,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Geppo Haki?",
 
@@ -7882,7 +7862,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Ken Haki?",
 
@@ -7930,7 +7910,7 @@ Shop:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax",
+            Title = "Buy",
 
             Content = "Do You Want Ken Haki?",
 
@@ -7974,7 +7954,7 @@ Settings:AddToggle({
 
     Name = "Bring Mob",
 
-    Default = true,
+    Default = false,
 
     Callback = function(Value)
 
@@ -8336,10 +8316,6 @@ end)
 
 
 
-Main:AddSection("Settings Mode Farm")
-
-
-
 Main:AddDropdown({
 
     Name = "Select Weapon",
@@ -8441,13 +8417,13 @@ Main:AddSlider({
 
     Name = "Ui scale",
 
-    Description = "Choose your point need to upgrade",
+    Description = "meomaybeo",
 
     Min = 0,
 
-    Max = 10,
+    Max = 2,
 
-    Default = 3,
+    Default = 1,
 
     Callback = function(value)
 
@@ -9114,6 +9090,108 @@ end)
 
 Main:AddToggle({
 
+    Name = "Auto Hop Server Chest",
+
+    Default = false,
+
+    Callback = function(Value)
+
+        _G.ChestFarmingHOP = Value
+
+    end
+
+})
+
+
+
+spawn(function()
+
+    while wait() do
+
+        pcall(function()
+
+            if _G.ChestFarmingHOP then
+
+                local CollectionService = game:GetService("CollectionService")
+
+                local chests = CollectionService:GetTagged("_ChestTagged")
+
+                local chestFound = false
+
+
+
+                for _, chest in ipairs(chests) do
+
+                    if chest and not chest:GetAttribute("IsDisabled") then
+
+                        chestFound = true
+
+                        local chestPos
+
+
+
+                        local success, result = pcall(function() return chest:GetPivot().Position end)
+
+                        if success then
+
+                            chestPos = result
+
+                        elseif chest:IsA("BasePart") then
+
+                            chestPos = chest.Position
+
+                        else
+
+                            chestPos = chest:FindFirstChild("RootPart") and chest.RootPart.Position
+
+                        end
+
+
+
+                        if chestPos then
+
+                            repeat
+
+                                task.wait()
+
+                                _tp(CFrame.new(chestPos))
+
+                                if (plr.Character.HumanoidRootPart.Position - chestPos).Magnitude <= 20 then
+
+                                end
+
+                            until not chest.Parent or chest:GetAttribute("IsDisabled") or not _G.ChestFarmingHOP
+
+                        end
+
+                        break 
+
+                    end
+
+                end
+
+
+
+                if not chestFound and _G.ChestFarmingHOP then
+
+                    wait(1)
+
+                    Hop()
+
+                end
+
+            end
+
+        end)
+
+    end
+
+end)
+
+
+
+Main:AddToggle({
+
     Name = "Auto Farm Ectoplasm",
 
     Default = false,
@@ -9155,6 +9233,444 @@ spawn(function()
     end)
 
   end
+
+end)
+
+Main:AddSection("Events")
+
+
+
+Main:AddParagraph("dog Main [ BETA ]", "gay <font color=\"#fc0303\">MANY ERROR</font>")
+
+
+
+local Players = game:GetService("Players")
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+
+local playerGui = player:WaitForChild("PlayerGui")
+
+local commF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
+
+
+
+-- Hàm kiểm tra quest hiện tại
+
+function CheckGetQuest()
+
+    local QGui = playerGui:FindFirstChild("Main") and playerGui.Main:FindFirstChild("Quest")
+
+    if QGui and QGui.Visible then
+
+        local QTitle = QGui.Container.QuestTitle.Title.Text
+
+        return QTitle
+
+    end
+
+    return nil
+
+end
+
+
+
+-- Hàm bắt đầu quest theo world
+
+function StartValentineQuest()
+
+    -- Tắt các chế độ farm khác
+
+    _G.AutoFarmNear = false
+
+    _G.AutoEctoplasm = false
+
+    _G.AutoFarmChest = false
+
+    _G.SeaBeast1 = false
+
+    _G.AutoCollectFruit = false
+
+    _G.AutoFarmChest = false
+
+    
+
+    -- Xác định tham số world
+
+    local worldArg = "Sea1"
+
+    if World2 then
+
+        worldArg = "Sea2"
+
+    elseif World3 then
+
+        worldArg = "Sea3"
+
+    end
+
+    
+
+    -- Teleport đến NPC Valentine
+
+    local npcPosition
+
+    if World1 then
+
+        npcPosition = CFrame.new(1000, 27, 1500)
+
+    elseif World2 then
+
+        npcPosition = CFrame.new(-400, 73, 1800)
+
+    elseif World3 then
+
+        npcPosition = CFrame.new(-712, 98, 5711)
+
+    end
+
+    
+
+    if npcPosition then
+
+        _tp(npcPosition)
+
+        wait(1.5)
+
+        
+
+        -- Gọi remote nhận quest
+
+        pcall(function()
+
+            commF:InvokeServer("StartNextValentineQuest", worldArg)
+
+        end)
+
+    end
+
+end
+
+
+
+-- Hàm kiểm tra và nộp vật phẩm
+
+function SubmitQuestItem(itemType, amount)
+
+    pcall(function()
+
+        commF:InvokeServer("SubmitValentineQuest", itemType, amount)
+
+    end)
+
+end
+
+
+
+Main:AddToggle({
+
+    Name = "Auto Farm Dog Event [Beta 3]",
+
+    Description = "",
+
+    Default = false,
+
+    Callback = function(Value)
+
+        _G.StartQuest = Value
+
+    end
+
+})
+
+
+
+-- Hàm kiểm tra số lượng cá trong inventory
+
+function GetFishCount()
+
+    local count = 0
+
+    -- Kiểm tra trong Backpack
+
+    for _, item in pairs(player.Backpack:GetChildren()) do
+
+        if item:IsA("Tool") and (string.find(item.Name, "Fish") or item.ToolTip == "Fish") then
+
+            count = count + 1
+
+        end
+
+    end
+
+    -- Kiểm tra trong Character
+
+    for _, item in pairs(player.Character:GetChildren()) do
+
+        if item:IsA("Tool") and (string.find(item.Name, "Fish") or item.ToolTip == "Fish") then
+
+            count = count + 1
+
+        end
+
+    end
+
+    return count
+
+end
+
+
+
+-- Hàm farm cá
+
+function FarmFish()
+
+    -- Sử dụng Auto Fishing có sẵn trong script
+
+    _G.AutoFishing = true
+
+end
+
+
+
+-- Main loop cho Valentine Event
+
+task.spawn(function()
+
+    while task.wait() do
+
+        pcall(function()
+
+            if not _G.StartQuest then return end
+
+            
+
+            local QuestTitle = CheckGetQuest()
+
+            if not QuestTitle then
+
+                StartValentineQuest()
+
+                return
+
+            end
+
+            
+
+            -- Defeat 5 Enemies / Defeat 10 Enemies
+
+            if string.find(QuestTitle, "Defeat") and not string.find(QuestTitle, "Boss") then
+
+                _G.AutoFarmNear = true
+
+            
+
+            -- Defeat 1-3 Bosses
+
+            elseif string.find(QuestTitle, "Defeat") and string.find(QuestTitle, "Boss") then
+
+                _G.AutoFarmNear = false
+
+                
+
+                local bossList = {}
+
+                if World1 then
+
+                    bossList = {"The Gorilla King", "Bobby", "The Saw", "Yeti", "Mob Leader", "Vice Admiral", "Saber Expert", "Warden", "Chief Warden", "Swan", "Magma Admiral", "Fishman Lord", "Wysper", "Thunder God", "Cyborg", "Ice Admiral", "Greybeard"}
+
+                elseif World2 then
+
+                    bossList = {"Diamond", "Jeremy", "Fajita", "Don Swan", "Smoke Admiral", "Awakened Ice Admiral", "Tide Keeper", "Darkbeard", "Cursed Captain", "Order"}
+
+                elseif World3 then
+
+                    bossList = {"Stone", "Hydra Leader", "Kilo Admiral", "Captain Elephant", "Beautiful Pirate", "Cake Queen", "Longma", "Soul Reaper"}
+
+                end
+
+                
+
+                local bossFound = false
+
+                for _, bossName in ipairs(bossList) do
+
+                    local boss = GetConnectionEnemies(bossName)
+
+                    if boss then
+
+                        Attack.Kill2(boss, _G.StartQuest)
+
+                        bossFound = true
+
+                        break
+
+                    end
+
+                end
+
+                
+
+                if not bossFound and #bossList > 0 then
+
+                    if PosMsList and PosMsList[bossList[1]] then
+
+                        _tp(PosMsList[bossList[1]])
+
+                    else
+
+                        if World1 then
+
+                            _tp(CFrame.new(-1088.75977, 8.13463783, -488.559906))
+
+                        elseif World2 then
+
+                            _tp(CFrame.new(-1576.7166748047, 198.59265136719, 13.724286079407))
+
+                        elseif World3 then
+
+                            _tp(CFrame.new(-1027.6512451172, 92.404174804688, 6578.8530273438))
+
+                        end
+
+                    end
+
+                end
+
+            
+
+            -- Hand Over 1 Fish
+
+            elseif string.find(QuestTitle, "Hand Over 1 Fish") or string.find(QuestTitle, "Bring 1 Fish") then
+
+                _G.AutoFarmNear = false
+
+                
+
+                local fishCount = GetFishCount()
+
+                if fishCount >= 1 then
+
+                    SubmitQuestItem("Fish", 1)
+
+                else
+
+                    FarmFish()
+
+                end
+
+            
+
+            -- Bring 2 Fish [Any rarity] - NHIỆM VỤ MỚI THÊM
+
+            elseif string.find(QuestTitle, "Bring 2 Fish") then
+
+                _G.AutoFarmNear = false
+
+                
+
+                local fishCount = GetFishCount()
+
+                if fishCount >= 2 then
+
+                    SubmitQuestItem("Fish", 2)
+
+                else
+
+                    FarmFish()
+
+                end
+
+            
+
+            -- Hand over Rare Fishes
+
+            elseif string.find(QuestTitle, "Rare") and string.find(QuestTitle, "Fish") then
+
+                _G.AutoFarmNear = false
+
+                _G.AutoEctoplasm = true
+
+                
+
+                if GetM("Fish Tail") and GetM("Fish Tail") >= 1 then
+
+                    SubmitQuestItem("Fish Tail", 1)
+
+                end
+
+            
+
+            -- Complete a Sea Events
+
+            elseif string.find(QuestTitle, "Sea Events") then
+
+                _G.AutoFarmNear = false
+
+                _G.SeaBeast1 = true
+
+                _G.FishBoat = true
+
+                _G.TerrorShark = true
+
+            
+
+            -- Hand over 1 Fruit of any rarity
+
+            elseif string.find(QuestTitle, "Fruit") then
+
+                _G.AutoFarmNear = false
+
+                _G.TwFruits = true
+
+                
+
+                -- Kiểm tra và nộp fruit
+
+                for _, item in pairs(player.Backpack:GetChildren()) do
+
+                    if string.find(item.Name, "Fruit") then
+
+                        SubmitQuestItem(item.Name, 1)
+
+                        break
+
+                    end
+
+                end
+
+            end
+
+            
+
+            -- Tự động tắt farm khi hoàn thành quest
+
+            if playerGui.Main.Quest.Visible == false then
+
+                _G.AutoFarmNear = false
+
+                _G.AutoEctoplasm = false
+
+                _G.AutoFarmChest = false
+
+                _G.SeaBeast1 = false
+
+                _G.FishBoat = false
+
+                _G.TerrorShark = false
+
+                _G.TwFruits = false
+
+                _G.AutoFishing = false
+
+                wait(2)
+
+            end
+
+        end)
+
+    end
 
 end)
 
@@ -9560,7 +10076,7 @@ end)
 
 
 
-Main:AddSection("Meterial Mode Farm")
+Main:AddSection("Mastery Mode Farm [ BETA ]")
 
 
 
@@ -9824,583 +10340,11 @@ end)
 
 
 
-Stack:AddSection("Game Raid Event")
+Fish:AddSection("Fishing")
 
 
 
-Stack:AddToggle({
-
-    Name = "Auto Farm Factory Raid",
-
-    Default = false,
-
-    Callback = function(Value)
-
-        _G.AutoFactory = Value
-
-    end
-
-})
-
-
-
-spawn(function()
-
-  while wait(Sec) do
-
-    pcall(function()
-
-      if _G.AutoFactory then
-
-        local v = GetConnectionEnemies("Core")
-
-        if v then
-
-          repeat wait()
-
-            EquipWeapon(_G.SelectWeapon)
-
-            _tp(CFrame.new(448.46756, 199.356781, -441.389252))
-
-          until v.Humanoid.Health <= 0 or _G.AutoFactory == false
-
-        else
-
-          _tp(CFrame.new(448.46756, 199.356781, -441.389252))
-
-        end
-
-      end
-
-    end)
-
-  end
-
-end)
-
-
-
-Stack:AddToggle({
-
-    Name = "Auto Farm Pirate Raid",
-
-    Default = false,
-
-    Callback = function(Value)
-
-        _G.AutoRaidCastle = Value
-
-    end
-
-})
-
-
-
-spawn(function()
-
-  while wait(Sec) do
-
-    if _G.AutoRaidCastle then
-
-      pcall(function()
-
-      local CFrameCastleRaid = CFrame.new(-5496.17432, 313.768921, -2841.53027, 0.924894512, 7.37058015e-09, 0.380223751, 3.5881019e-08, 1, -1.06665446e-07, -0.380223751, 1.12297109e-07, 0.924894512)
-
-        if (CFrame.new(-5539.3115234375, 313.800537109375, -2972.372314453125).Position - Root.Position).Magnitude <= 500 then
-
-          for i,v in pairs(workspace.Enemies:GetChildren()) do
-
-            if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
-
-              if v.Name then
-
-                if (v.HumanoidRootPart.Position - Root.Position).Magnitude <= 2000 then
-
-                  repeat wait() Attack.Kill(v,_G.AutoRaidCastle) until not _G.AutoRaidCastle or not v.Parent or v.Humanoid.Health <= 0 or not workspace.Enemies:FindFirstChild(v.Name)
-
-                end
-
-              end
-
-            end
-
-          end
-
-        else
-
-          local Castle_Mob = {"Galley Pirate","Galley Captain","Raider","Mercenary","Vampire","Zombie","Snow Trooper","Winter Warrior","Lab Subordinate","Horned Warrior","Magma Ninja","Lava Pirate","Ship Deckhand","Ship Engineer","Ship Steward","Ship Officer","Arctic Warrior","Snow Lurker","Sea Soldier","Water Fighter"}
-
-          for i = 1,#Castle_Mob do
-
-            if replicated:FindFirstChild(Castle_Mob[i]) then
-
-              for _,v in pairs(replicated:GetChildren()) do
-
-                if table.find(Castle_Mob, v.Name) then _tp(CFrameCastleRaid) end
-
-              end
-
-            end
-
-          end
-
-        end
-
-      end)
-
-    end
-
-  end
-
-end)
-
-
-
-Stack:AddSection("Valentine Event")
-
-
-
-Stack:AddParagraph("SynTrax", "This is a Beta Valentine i make can you has <font color=\"#fc0303\">MANY ERROR</font>")
-
-
-
-local Players = game:GetService("Players")
-
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local player = Players.LocalPlayer
-
-local playerGui = player:WaitForChild("PlayerGui")
-
-local commF = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_")
-
-
-
--- Hàm kiểm tra quest hiện tại
-
-function CheckGetQuest()
-
-    local QGui = playerGui:FindFirstChild("Main") and playerGui.Main:FindFirstChild("Quest")
-
-    if QGui and QGui.Visible then
-
-        local QTitle = QGui.Container.QuestTitle.Title.Text
-
-        return QTitle
-
-    end
-
-    return nil
-
-end
-
-
-
--- Hàm bắt đầu quest theo world
-
-function StartValentineQuest()
-
-    -- Tắt các chế độ farm khác
-
-    _G.AutoFarmNear = false
-
-    _G.AutoEctoplasm = false
-
-    _G.AutoFarmChest = false
-
-    _G.SeaBeast1 = false
-
-    _G.AutoCollectFruit = false
-
-    _G.AutoFarmChest = false
-
-    
-
-    -- Xác định tham số world
-
-    local worldArg = "Sea1"
-
-    if World2 then
-
-        worldArg = "Sea2"
-
-    elseif World3 then
-
-        worldArg = "Sea3"
-
-    end
-
-    
-
-    -- Teleport đến NPC Valentine
-
-    local npcPosition
-
-    if World1 then
-
-        npcPosition = CFrame.new(1000, 27, 1500)
-
-    elseif World2 then
-
-        npcPosition = CFrame.new(-400, 73, 1800)
-
-    elseif World3 then
-
-        npcPosition = CFrame.new(-712, 98, 5711)
-
-    end
-
-    
-
-    if npcPosition then
-
-        _tp(npcPosition)
-
-        wait(1.5)
-
-        
-
-        -- Gọi remote nhận quest
-
-        pcall(function()
-
-            commF:InvokeServer("StartNextValentineQuest", worldArg)
-
-        end)
-
-    end
-
-end
-
-
-
--- Hàm kiểm tra và nộp vật phẩm
-
-function SubmitQuestItem(itemType, amount)
-
-    pcall(function()
-
-        commF:InvokeServer("SubmitValentineQuest", itemType, amount)
-
-    end)
-
-end
-
-
-
-Stack:AddToggle({
-
-    Name = "Auto Farm Hearth Event [Beta 3]",
-
-    Description = "",
-
-    Default = false,
-
-    Callback = function(Value)
-
-        _G.StartQuest = Value
-
-    end
-
-})
-
-
-
--- Hàm kiểm tra số lượng cá trong inventory
-
-function GetFishCount()
-
-    local count = 0
-
-    -- Kiểm tra trong Backpack
-
-    for _, item in pairs(player.Backpack:GetChildren()) do
-
-        if item:IsA("Tool") and (string.find(item.Name, "Fish") or item.ToolTip == "Fish") then
-
-            count = count + 1
-
-        end
-
-    end
-
-    -- Kiểm tra trong Character
-
-    for _, item in pairs(player.Character:GetChildren()) do
-
-        if item:IsA("Tool") and (string.find(item.Name, "Fish") or item.ToolTip == "Fish") then
-
-            count = count + 1
-
-        end
-
-    end
-
-    return count
-
-end
-
-
-
--- Hàm farm cá
-
-function FarmFish()
-
-    -- Sử dụng Auto Fishing có sẵn trong script
-
-    _G.AutoFishing = true
-
-end
-
-
-
--- Main loop cho Valentine Event
-
-task.spawn(function()
-
-    while task.wait() do
-
-        pcall(function()
-
-            if not _G.StartQuest then return end
-
-            
-
-            local QuestTitle = CheckGetQuest()
-
-            if not QuestTitle then
-
-                StartValentineQuest()
-
-                return
-
-            end
-
-            
-
-            -- Defeat 5 Enemies / Defeat 10 Enemies
-
-            if string.find(QuestTitle, "Defeat") and not string.find(QuestTitle, "Boss") then
-
-                _G.AutoFarmNear = true
-
-            
-
-            -- Defeat 1-3 Bosses
-
-            elseif string.find(QuestTitle, "Defeat") and string.find(QuestTitle, "Boss") then
-
-                _G.AutoFarmNear = false
-
-                
-
-                local bossList = {}
-
-                if World1 then
-
-                    bossList = {"The Gorilla King", "Bobby", "The Saw", "Yeti", "Mob Leader", "Vice Admiral", "Saber Expert", "Warden", "Chief Warden", "Swan", "Magma Admiral", "Fishman Lord", "Wysper", "Thunder God", "Cyborg", "Ice Admiral", "Greybeard"}
-
-                elseif World2 then
-
-                    bossList = {"Diamond", "Jeremy", "Fajita", "Don Swan", "Smoke Admiral", "Awakened Ice Admiral", "Tide Keeper", "Darkbeard", "Cursed Captain", "Order"}
-
-                elseif World3 then
-
-                    bossList = {"Stone", "Hydra Leader", "Kilo Admiral", "Captain Elephant", "Beautiful Pirate", "Cake Queen", "Longma", "Soul Reaper"}
-
-                end
-
-                
-
-                local bossFound = false
-
-                for _, bossName in ipairs(bossList) do
-
-                    local boss = GetConnectionEnemies(bossName)
-
-                    if boss then
-
-                        Attack.Kill2(boss, _G.StartQuest)
-
-                        bossFound = true
-
-                        break
-
-                    end
-
-                end
-
-                
-
-                if not bossFound and #bossList > 0 then
-
-                    if PosMsList and PosMsList[bossList[1]] then
-
-                        _tp(PosMsList[bossList[1]])
-
-                    else
-
-                        if World1 then
-
-                            _tp(CFrame.new(-1088.75977, 8.13463783, -488.559906))
-
-                        elseif World2 then
-
-                            _tp(CFrame.new(-1576.7166748047, 198.59265136719, 13.724286079407))
-
-                        elseif World3 then
-
-                            _tp(CFrame.new(-1027.6512451172, 92.404174804688, 6578.8530273438))
-
-                        end
-
-                    end
-
-                end
-
-            
-
-            -- Hand Over 1 Fish
-
-            elseif string.find(QuestTitle, "Hand Over 1 Fish") or string.find(QuestTitle, "Bring 1 Fish") then
-
-                _G.AutoFarmNear = false
-
-                
-
-                local fishCount = GetFishCount()
-
-                if fishCount >= 1 then
-
-                    SubmitQuestItem("Fish", 1)
-
-                else
-
-                    FarmFish()
-
-                end
-
-            
-
-            -- Bring 2 Fish [Any rarity] - NHIỆM VỤ MỚI THÊM
-
-            elseif string.find(QuestTitle, "Bring 2 Fish") then
-
-                _G.AutoFarmNear = false
-
-                
-
-                local fishCount = GetFishCount()
-
-                if fishCount >= 2 then
-
-                    SubmitQuestItem("Fish", 2)
-
-                else
-
-                    FarmFish()
-
-                end
-
-            
-
-            -- Hand over Rare Fishes
-
-            elseif string.find(QuestTitle, "Rare") and string.find(QuestTitle, "Fish") then
-
-                _G.AutoFarmNear = false
-
-                _G.AutoEctoplasm = true
-
-                
-
-                if GetM("Fish Tail") and GetM("Fish Tail") >= 1 then
-
-                    SubmitQuestItem("Fish Tail", 1)
-
-                end
-
-            
-
-            -- Complete a Sea Events
-
-            elseif string.find(QuestTitle, "Sea Events") then
-
-                _G.AutoFarmNear = false
-
-                _G.SeaBeast1 = true
-
-                _G.FishBoat = true
-
-                _G.TerrorShark = true
-
-            
-
-            -- Hand over 1 Fruit of any rarity
-
-            elseif string.find(QuestTitle, "Fruit") then
-
-                _G.AutoFarmNear = false
-
-                _G.TwFruits = true
-
-                
-
-                -- Kiểm tra và nộp fruit
-
-                for _, item in pairs(player.Backpack:GetChildren()) do
-
-                    if string.find(item.Name, "Fruit") then
-
-                        SubmitQuestItem(item.Name, 1)
-
-                        break
-
-                    end
-
-                end
-
-            end
-
-            
-
-            -- Tự động tắt farm khi hoàn thành quest
-
-            if playerGui.Main.Quest.Visible == false then
-
-                _G.AutoFarmNear = false
-
-                _G.AutoEctoplasm = false
-
-                _G.AutoFarmChest = false
-
-                _G.SeaBeast1 = false
-
-                _G.FishBoat = false
-
-                _G.TerrorShark = false
-
-                _G.TwFruits = false
-
-                _G.AutoFishing = false
-
-                wait(2)
-
-            end
-
-        end)
-
-    end
-
-end)
-
-
-
-Stack:AddSection("Fishing")
-
-
-
-Stack:AddDropdown({
+Fish:AddDropdown({
 
     Name = "Select Fishing Rod",
 
@@ -10432,7 +10376,7 @@ Stack:AddDropdown({
 
 
 
-Stack:AddDropdown({
+Fish:AddDropdown({
 
     Name = "Select Bait",
 
@@ -10482,7 +10426,7 @@ Stack:AddDropdown({
 
 
 
-Stack:AddToggle({
+Fish:AddToggle({
 
     Name = "Auto Buy Bait",
 
@@ -10536,7 +10480,7 @@ end)
 
 
 
-Stack:AddToggle({
+Fish:AddToggle({
 
     Name = "Auto Fishing",
 
@@ -10718,7 +10662,7 @@ end)
 
 
 
-Stack:AddToggle({
+Fish:AddToggle({
 
     Name = "Auto Quest Fishing",
 
@@ -10790,7 +10734,7 @@ end)
 
 
 
-Stack:AddToggle({
+Fish:AddToggle({
 
     Name = "Auto Complete Quest",
 
@@ -10844,7 +10788,7 @@ end)
 
 
 
-Stack:AddToggle({
+Fish:AddToggle({
 
     Name = "Auto Sell Fish",
 
@@ -10898,7 +10842,7 @@ end)
 
 
 
-Stack:AddToggle({
+Fish:AddToggle({
 
     Name = "Auto Spam Skill Z",
 
@@ -10944,19 +10888,21 @@ end)
 
 
 
-Stack:AddSection("Get Melee")
+Stack:AddSection("Auto Dojo Quests")
 
 
 
-Stack:AddToggle({
+-- Teleport To Dragon Dojo
 
-    Name = "Auto Get SuperHuman",
+Stack:AddButton({
 
-    Default = false,
+    Name = "Teleport To Dragon Dojo House",
 
-    Callback = function(Value)
+    Callback = function()
 
-        _G.Auto_SuperHuman = Value
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(5661.5322265625, 1013.0907592773, -334.96499633789))
+
+        topos(CFrame.new(5814.4272460938, 1208.3267822266, 884.57855224609))
 
     end
 
@@ -10964,315 +10910,597 @@ Stack:AddToggle({
 
 
 
+-- Auto Dojo Trainer
+
+Stack:AddToggle({
+
+    Name = "Auto Dojo Trainer Quests",
+
+    Description = "",
+
+    Default = false,
+
+    Callback = function(value)
+
+        _G.Dojoo = value
+
+    end
+
+})
+
+
+
+-- Hàm lấy tên Belt
+
+local function printBeltName(data)
+
+    if type(data) == "table" and data.Quest and data.Quest.BeltName then
+
+        return data.Quest.BeltName
+
+    end
+
+end
+
+
+
+-- Auto Dojo Trainer Loop
+
 spawn(function()
 
-  while wait(Sec) do
+    while wait(Sec) do
+
+        if _G.Dojoo then
+
+            pcall(function()
+
+                local interactRemote = L_1_[18].Modules.Net:FindFirstChild("RF/InteractDragonQuest")
+
+                
+
+                -- Request quest
+
+                local questData = interactRemote:InvokeServer({
+
+                    NPC = "Dojo Trainer",
+
+                    Command = "RequestQuest"
+
+                })
+
+                
+
+                local beltName = printBeltName(questData)
+
+                
+
+                if debug == false and (not questData and not beltName) then
+
+                    _tp(CFrame.new(5865.0234375, 1208.3154296875, 871.15185546875))
+
+                    debug = true
+
+                    
+
+                elseif debug == true and (CFrame.new(5865.0234375, 1208.3154296875, 871.15185546875).Position - L_1_[45].Character.HumanoidRootPart.Position).Magnitude <= 50 then
+
+                    
+
+                    -- Xử lý theo màu belt
+
+                    if beltName == "White" then
+
+                        local enemy = GetConnectionEnemies("Skull Slayer")
+
+                        if enemy then
+
+                            repeat
+
+                                task.wait()
+
+                                L_1_[4].Kill(enemy, _G.Dojoo)
+
+                            until not questData or not _G.Dojoo or not L_1_[4].Alive(enemy)
+
+                        else
+
+                            _tp(CFrame.new(-16759.58984375, 71.283767700195, 1595.3399658203))
+
+                        end
+
+                        
+
+                    elseif beltName == "Yellow" then
+
+                        repeat
+
+                            task.wait()
+
+                            _G.SeaBeast1 = true
+
+                            _G.TerrorShark = true
+
+                            _G.Shark = true
+
+                            _G.Piranha = true
+
+                            _G.MobCrew = true
+
+                            _G.FishBoat = true
+
+                            _G.SailBoats = true
+
+                        until not _G.Dojoo or not questData
+
+                        
+
+                        _G.SeaBeast1 = false
+
+                        _G.TerrorShark = false
+
+                        _G.Shark = false
+
+                        _G.Piranha = false
+
+                        _G.MobCrew = false
+
+                        _G.FishBoat = false
+
+                        _G.SailBoats = false
+
+                        
+
+                    elseif beltName == "Green" then
+
+                        repeat
+
+                            task.wait()
+
+                            _G.SailBoats = true
+
+                        until not _G.Dojoo or not questData
+
+                        _G.SailBoats = false
+
+                        
+
+                    elseif beltName == "Purple" then
+
+                        repeat
+
+                            task.wait()
+
+                            _G.FarmEliteHunt = true
+
+                        until not _G.Dojoo or not questData
+
+                        _G.FarmEliteHunt = false
+
+                        
+
+                    elseif beltName == "Red" then
+
+                        repeat
+
+                            task.wait()
+
+                            _G.SailBoats = true
+
+                            _G.FishBoat = true
+
+                        until not _G.Dojoo or not questData
+
+                        _G.SailBoats = false
+
+                        _G.FishBoat = false
+
+                        
+
+                    elseif beltName == "Black" then
+
+                        repeat
+
+                            task.wait()
+
+                            if workspace.Map:FindFirstChild("PrehistoricIsland") or workspace._WorldOrigin.Locations:FindFirstChild("Prehistoric Island") then
+
+                                _G.Prehis_Find = true
+
+                                if workspace.Map.PrehistoricIsland.Core.ActivationPrompt:FindFirstChild("ProximityPrompt", true) then
+
+                                    _G.Prehis_Skills = false
+
+                                    _G.Prehis_Find = true
+
+                                else
+
+                                    _G.Prehis_Skills = true
+
+                                    _G.Prehis_Find = false
+
+                                end
+
+                            else
+
+                                _G.Prehis_Find = true
+
+                                _G.Prehis_Skills = false
+
+                            end
+
+                        until not _G.Dojoo or not questData
+
+                        _G.Prehis_Find = false
+
+                        _G.Prehis_Skills = false
+
+                        
+
+                    elseif beltName == "Orange" or beltName == "Blue" then
+
+                        -- Do nothing
+
+                    end
+
+                end
+
+                
+
+                -- Claim quest nếu không có quest
+
+                if not questData then
+
+                    debug = false
+
+                    interactRemote:InvokeServer({
+
+                        NPC = "Dojo Trainer",
+
+                        Command = "ClaimQuest"
+
+                    })
+
+                end
+
+            end)
+
+        end
+
+    end
+
+end)
+
+
+
+Stack:AddToggle({
+
+    Name = "Auto Dragon Hunter Quests",
+
+    Description = "",
+
+    Default = false,
+
+    Callback = function(value)
+
+        _G.FarmBlazeEM = value
+
+    end
+
+})
+
+
+
+-- Hàm kiểm tra quest
+
+local function checkQuesta()
+
+    local result = {found = false, target = nil, count = nil, type = nil}
+
+    
 
     pcall(function()
 
-      if _G.Auto_SuperHuman then
+        local hunterRemote = game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Net"):WaitForChild("RF/DragonHunter")
 
-      local M_Beli = plr.Data.Beli.Value
+        local questData = hunterRemote:InvokeServer({Context = "Check"})
 
-	  local M_Frag = plr.Data.Fragments.Value
+        
 
-        if plr:FindFirstChild("WeaponAssetCache") then
+        if questData and questData.Text then
 
-          if not GetBP("Superhuman") then                    
+            result.found = true
 
-            if not GetBP("Black Leg") then
+            local text = tostring(questData.Text)
 
-            if (M_Beli >= 150000) then replicated.Remotes.CommF_:InvokeServer("BuyBlackLeg") end
+            
 
-            elseif GetBP("Black Leg") and GetBP("Black Leg").Level.Value < 299 then _G.Level = true elseif GetBP("Black Leg") and GetBP("Black Leg").Level.Value >= 300 then _G.Level = false end                        
+            if string.find(text, "Defeat") then
 
-            if not GetBP("Electro") then
+                result.type = 1
 
-            if (M_Beli >= 500000) then replicated.Remotes.CommF_:InvokeServer("BuyElectro") end
+                result.count = tonumber(string.sub(text, 8, 9))
 
-            elseif GetBP("Electro") and GetBP("Electro").Level.Value < 299 then _G.Level = true elseif GetBP("Electro") and GetBP("Electro").Level.Value >= 300 then _G.Level = false end                        
+                
 
-            if not GetBP("Fishman Karate") then
+                local targets = {"Hydra Enforcer", "Venomous Assailant"}
 
-            if (M_Beli >= 750000) then replicated.Remotes.CommF_:InvokeServer("BuyFishmanKarate") end
+                for _, target in pairs(targets) do
 
-            elseif GetBP("Fishman Karate") and GetBP("Fishman Karate").Level.Value < 299 then _G.Level = true elseif GetBP("Fishman Karate") and GetBP("Fishman Karate").Level.Value >= 300 then _G.Level = false end                        
+                    if string.find(text, target) then
 
-            if not GetBP("Dragon Claw") then
+                        result.target = target
 
-            if (M_Frag >= 1500) then replicated.Remotes.CommF_:InvokeServer("BlackbeardReward","DragonClaw","2") end
+                        break
 
-            elseif GetBP("Dragon Claw") and GetBP("Dragon Claw").Level.Value < 299 then _G.Level = true elseif GetBP("Dragon Claw") and GetBP("Dragon Claw").Level.Value >= 300 then _G.Level = false end
+                    end
 
-            replicated.Remotes.CommF_:InvokeServer("BuySuperhuman")          
+                end
 
-          end
+                
 
-        end        
+            elseif string.find(text, "Destroy") then
 
-      end
+                result.type = 2
+
+                result.count = 10
+
+            end
+
+        end
 
     end)
 
-  end
+    
 
-end)
+    return result.found, result.target, result.count, result.type
 
-
-
-Stack:AddToggle({
-
-    Name = "Auto Get Death Step",
-
-    Default = false,
-
-    Callback = function(Value)
-
-        _G.AutoDeathStep = Value
-
-    end
-
-})
+end
 
 
 
-spawn(function()
+-- Hàm kiểm tra quay lại Dojo
 
-  while wait(Sec) do
+local function BackTODoJo()
 
-    if _G.AutoDeathStep then
+    for _, notification in pairs(game.Players.LocalPlayer.PlayerGui.Notifications:GetChildren()) do
 
-      pcall(function()
+        if notification.Name == "NotificationTemplate" then
 
-        if plr:FindFirstChild("WeaponAssetCache") then  
+            if string.find(notification.Text, "Head back to the Dojo to complete more tasks") then
 
-          if not GetBP("Death Step") then          
+                return true
 
-            if not GetBP("Black Leg") then replicated.Remotes.CommF_:InvokeServer("BuyBlackLeg") end
-
-            if GetBP("Black Leg") and GetBP("Black Leg").Level.Value >= 400 then replicated.Remotes.CommF_:InvokeServer("BuyDeathStep") _G.Level = false elseif GetBP("Black Leg") and GetBP("Black Leg").Level.Value < 399 then _G.Level = true end
-
-            if GetBP("Black Leg") or GetBP("Black Leg").Level.Value >= 400 then
-
-            if workspace.Map.IceCastle.Hall.LibraryDoor.PhoeyuDoor.Transparency == 0 then            
-
-              if GetBP("Library Key") then repeat wait() _tp(CFrame.new(6371.2001953125, 296.63433837890625, -6841.18115234375)) until not _G.AutoDeathStep or (Root.Position == CFrame.new(6371.2001953125, 296.63433837890625, -6841.18115234375).Position)
-
-		        if (Root.CFrame == CFrame.new(6371.2001953125, 296.63433837890625, -6841.18115234375)) then replicated.Remotes.CommF_:InvokeServer("BuyDeathStep") end     
-
-		        elseif not GetBP("Library Key") then
-
-		          local v = GetConnectionEnemies("Awakened Ice Admiral")
-
-		          if v then	repeat wait() Attack.Kill(v,_G.AutoDeathStep) until not v.Parent or v.Humanoid.Health <= 0 or _G.AutoDeathStep == false or GetBP("Library Key") or GetBP("Death Step")
-
-	              else _tp(CFrame.new(5668.9780273438, 28.519989013672, -6483.3520507813))
-
-	              end
-
-		        end		    
-
-              end
-
-            end          
-
-          end
+            end
 
         end
 
-      end)
-
     end
 
-  end
+    return false
 
-end)
-
-
-
-Stack:AddToggle({
-
-    Name = "Auto Get Sharkman Katarte",
-
-    Default = false,
-
-    Callback = function(Value)
-
-        _G.Auto_SharkMan_Karate = Value
-
-    end
-
-})
+end
 
 
 
-spawn(function() 
+-- Hàm kill mob Dragon
 
-  while wait(Sec) do
+local function DragonMobClear(isKill, mobName, tpPos)
 
-    if _G.Auto_SharkMan_Karate then
+    if workspace.Enemies:FindFirstChild(mobName) then
 
-      pcall(function()
+        for _, enemy in pairs(workspace.Enemies:GetChildren()) do
 
-        if plr:FindFirstChild("WeaponAssetCache") then  
+            if enemy.Name == mobName and L_1_[4].Alive(enemy) then
 
-          if not GetBP("Sharkman Karate") then          
+                if isKill then
 
-            if not GetBP("Fishman Karate") then replicated.Remotes.CommF_:InvokeServer("BuyFishmanKarate") end
+                    L_1_[4].Kill(enemy, _G.FarmBlazeEM)
 
-            if GetBP("Fishman Karate") and GetBP("Fishman Karate").Level.Value >= 400 then replicated.Remotes.CommF_:InvokeServer("BuySharkmanKarate") _G.Level = false elseif GetBP("Fishman Karate") and GetBP("Fishman Karate").Level.Value < 399 then _G.Level = true end
+                end
 
-            if GetBP("Fishman Karate") or GetBP("Fishman Karate").Level.Value >= 400 then           
-
-              if GetBP("Water Key") then
-
-		        if string.find(replicated.Remotes.CommF_:InvokeServer("BuySharkmanKarate"), "keys") then  
-
-			      if GetBP("Water Key") then
-
-			        repeat wait() _tp(CFrame.new(-2604.6958, 239.432526, -10315.1982, 0.0425701365, 0, -0.999093413, 0, 1, 0, 0.999093413, 0, 0.0425701365)) until not _G.Auto_SharkMan_Karate or (Root.Position == CFrame.new(-2604.6958, 239.432526, -10315.1982, 0.0425701365, 0, -0.999093413, 0, 1, 0, 0.999093413, 0, 0.0425701365).Position)
-
-	                replicated.Remotes.CommF_:InvokeServer("BuySharkmanKarate")
-
-		          end
-
-		        end
-
-		      elseif not GetBP("Water Key") then
-
-		        local v = GetConnectionEnemies("Tide Keeper")
-
-		        if v then repeat wait() Attack.Kill(v,_G.Auto_SharkMan_Karate)until not v.Parent or v.Humanoid.Health <= 0 or _G.Auto_SharkMan_Karate == false or GetBP("Water Key") or GetBP("Sharkman Karate")		
-
-	            else _tp(CFrame.new(-3053.9814453125, 237.18954467773, -10145.0390625))
-
-	            end
-
-		      end		                  
-
-            end          
-
-          end
+            end
 
         end
 
-      end)
+    else
+
+        _tp(tpPos)
 
     end
 
-  end
-
-end)
+end
 
 
 
-Stack:AddToggle({
-
-    Name = "Auto Get Electric Claw",
-
-    Default = false,
-
-    Callback = function(Value)
-
-        _G.Auto_Electric_Claw = Value
-
-    end
-
-})
-
-
+-- Auto Dragon Hunter Loop
 
 spawn(function()
 
-  while wait(Sec) do
+    while wait() do
 
-    if _G.Auto_Electric_Claw then
+        if _G.FarmBlazeEM then
 
-      pcall(function()
+            pcall(function()
 
-        if plr:FindFirstChild("WeaponAssetCache") then 
+                local found, target, count, questType = checkQuesta()
 
-        if not GetBP("Electro") then replicated.Remotes.CommF_:InvokeServer("BuyElectro") end        
+                
 
-          if GetBP("Electro") and GetBP("Electro").Level.Value >= 400 then
+                if found == true and not BackTODoJo() then
 
-            if replicated.Remotes.CommF_:InvokeServer("BuyElectricClaw", "Start") == nil then notween(CFrame.new(-12548, 337, -7481)) end
+                    if questType == 1 then
 
-            replicated.Remotes.CommF_:InvokeServer("BuyElectricClaw")
+                        if target == "Hydra Enforcer" or target == "Venomous Assailant" then
 
-          elseif GetBP("Electro") and GetBP("Electro").Level.Value < 400 then
+                            repeat
 
-            repeat _G.AutoFarm_Bone = true wait() until not _G.Auto_Electric_Claw or GetBP("Electric Claw") _G.AutoFarm_Bone = false
+                                wait()
 
-          end
+                                DragonMobClear(true, target, CFrame.new(4620.6157226562, 1002.2954711914, 399.08688354492))
 
-        end       
+                            until not _G.FarmBlazeEM or not found or BackTODoJo()
 
-      end)
+                        end
 
-    end
+                        
 
-  end
+                    elseif questType == 2 then
 
-end)
+                        local bamboo = workspace.Map.Waterfall.IslandModel:FindFirstChild("Meshes/bambootree", true)
 
+                        if bamboo then
 
+                            repeat
 
-Stack:AddToggle({
+                                wait()
 
-    Name = "Auto Get Dragon Talon",
+                                spawn(function()
 
-    Default = false,
+                                    _tp(bamboo.CFrame * CFrame.new(4, 0, 0))
 
-    Callback = function(Value)
+                                end)
 
-        _G.AutoDragonTalon = Value
+                                
 
-    end
+                                if (bamboo.Position - Root.Position).Magnitude <= 200 then
 
-})
+                                    MousePos = bamboo.Position
 
+                                    Useskills("Melee", "Z")
 
+                                    Useskills("Melee", "X")
 
-spawn(function()
+                                    Useskills("Melee", "C")
 
-  while wait(Sec) do
+                                    wait(.5)
 
-    if _G.AutoDragonTalon then
+                                    Useskills("Sword", "Z")
 
-      pcall(function()
+                                    Useskills("Sword", "X")
 
-        if plr:FindFirstChild("WeaponAssetCache") then 
+                                    wait(.5)
 
-        if not GetBP("Dragon Claw") then replicated.Remotes.CommF_:InvokeServer("BlackbeardReward","DragonClaw","2") end        
+                                    Useskills("Blox Fruit", "Z")
 
-          if GetBP("Dragon Claw") and GetBP("Dragon Claw").Level.Value >= 400 then replicated.Remotes.CommF_:InvokeServer("Bones","Buy",1,1) replicated.Remotes.CommF_:InvokeServer("BuyDragonTalon")
+                                    Useskills("Blox Fruit", "X")
 
-          elseif GetBP("Dragon Claw") and GetBP("Dragon Claw").Level.Value < 400 then repeat _G.AutoFarm_Bone = true wait() until not _G.AutoDragonTalon or GetBP("Dragon Talon") _G.AutoFarm_Bone = false
+                                    Useskills("Blox Fruit", "C")
 
-          end         
+                                    wait(.5)
+
+                                    Useskills("Gun", "Z")
+
+                                    Useskills("Gun", "X")
+
+                                end
+
+                            until not _G.FarmBlazeEM or not found or BackTODoJo()
+
+                        end
+
+                    end
+
+                else
+
+                    _tp(CFrame.new(5813, 1208, 884))
+
+                    DragonMobClear(false, nil, nil)
+
+                end
+
+            end)
 
         end
 
-      end)
-
     end
-
-  end
 
 end)
 
 
 
+-- Auto collect Ember
+
+spawn(function()
+
+    while wait(.1) do
+
+        if _G.FarmBlazeEM then
+
+            pcall(function()
+
+                if workspace.EmberTemplate and workspace.EmberTemplate:FindFirstChild("Part") then
+
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = workspace.EmberTemplate.Part.CFrame
+
+                end
+
+            end)
+
+        end
+
+    end
+
+end)
+
+
+
+-- Tween to Drago Trials
+
 Stack:AddToggle({
 
-    Name = "Auto Get God Human",
+    Name = "Teleport to Drago Trials",
+
+    Description = "",
+
+    Default = false,
+
+    Callback = function(value)
+
+        _G.TpDrago_Prehis = value
+
+    end
+
+})
+
+
+
+-- Tween to Drago Trials Loop
+
+spawn(function()
+
+    while wait(Sec) do
+
+        if _G.TpDrago_Prehis then
+
+            local trialTeleport = workspace.Map.PrehistoricIsland:FindFirstChild("TrialTeleport")
+
+            if trialTeleport and trialTeleport:IsA("Part") then
+
+                _tp(CFrame.new(trialTeleport.Position))
+
+            end
+
+        end
+
+    end
+
+end)
+
+
+
+Stack:AddSection("Game Raid Event")
+
+
+
+Stack:AddToggle({
+
+    Name = "Auto Farm Factory Raid",
 
     Default = false,
 
     Callback = function(Value)
 
-        _G.AutoDragonTalon = Value
+        _G.AutoFactory = Value
 
     end
 
@@ -11282,79 +11510,27 @@ Stack:AddToggle({
 
 spawn(function()
 
-  while wait() do
+  while wait(Sec) do
 
     pcall(function()
 
-      if _G.AutoGodHuman then
+      if _G.AutoFactory then
 
-        if replicated.Remotes.CommF_:InvokeServer("BuyGodhuman",true) == "Bring me 20 Fish Tails, 20 Magma Ore, 10 Dragon Scales and 10 Mystic Droplets." then
+        local v = GetConnectionEnemies("Core")
 
-          if GetM("Dragon Scale") == false or GetM("Dragon Scale") < 10 then
+        if v then
 
-            if World3 then
+          repeat wait()
 
-              Lv = 1575
+            EquipWeapon(_G.SelectWeapon)
 
-              _G.Level = true
+            _tp(CFrame.new(448.46756, 199.356781, -441.389252))
 
-            else
-
-              replicated.Remotes.CommF_:InvokeServer("TravelZou")
-
-            end
-
-          elseif GetM("Fish Tail") == false or GetM("Fish Tail") < 20 then
-
-            if World3 then
-
-              Lv = 1775
-
-              _G.Level = true
-
-            else
-
-              replicated.Remotes.CommF_:InvokeServer("TravelZou")
-
-            end
-
-          elseif GetM("Mystic Droplet") == false or GetM("Mystic Droplet") < 10 then
-
-            if World2 then
-
-              Lv = 1425
-
-              _G.Level = true
-
-            else
-
-              replicated.Remotes.CommF_:InvokeServer("TravelDressrosa")
-
-            end
-
-          elseif GetM("Magma Ore") == false or GetM("Magma Ore") < 20 then
-
-            if World2 then
-
-              Lv = 1175
-
-              _G.Level = true
-
-            else
-
-              replicated.Remotes.CommF_:InvokeServer("TravelDressrosa")
-
-            end  
-
-          end
-
-        elseif replicated.Remotes.CommF_:InvokeServer("BuyGodhuman",true) == 3 then
-
-          return nil
+          until v.Humanoid.Health <= 0 or _G.AutoFactory == false
 
         else
 
-          replicated.Remotes.CommF_:InvokeServer("BuyGodhuman")
+          _tp(CFrame.new(448.46756, 199.356781, -441.389252))
 
         end
 
@@ -11370,13 +11546,13 @@ end)
 
 Stack:AddToggle({
 
-    Name = "Auto Get Sanguine Art",
+    Name = "Auto Farm Pirate Raid",
 
     Default = false,
 
     Callback = function(Value)
 
-        _G.snaguine = Value
+        _G.AutoRaidCastle = Value
 
     end
 
@@ -11388,79 +11564,49 @@ spawn(function()
 
   while wait(Sec) do
 
-    if _G.snaguine then
+    if _G.AutoRaidCastle then
 
       pcall(function()
 
-        if not GetBP("Sanguine Art") then replicated.Remotes.CommF_:InvokeServer("Sanguine Art") end
+      local CFrameCastleRaid = CFrame.new(-5496.17432, 313.768921, -2841.53027, 0.924894512, 7.37058015e-09, 0.380223751, 3.5881019e-08, 1, -1.06665446e-07, -0.380223751, 1.12297109e-07, 0.924894512)
 
-        if not GetBP("Sanguine Art") then
+        if (CFrame.new(-5539.3115234375, 313.800537109375, -2972.372314453125).Position - Root.Position).Magnitude <= 500 then
 
-          if GetM("Leviathan Heart") >= 1 then print("Completed!!")
+          for i,v in pairs(workspace.Enemies:GetChildren()) do
 
-          else
+            if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
 
-          if World3 then _G.DangerSc = "Lv Infinite" _G.SailBoats = true; else _G.SailBoats = false; end end
+              if v.Name then
 
-          if GetM("Vampire Fang") <= 19 then
+                if (v.HumanoidRootPart.Position - Root.Position).Magnitude <= 2000 then
 
-            if World2 then
+                  repeat wait() Attack.Kill(v,_G.AutoRaidCastle) until not _G.AutoRaidCastle or not v.Parent or v.Humanoid.Health <= 0 or not workspace.Enemies:FindFirstChild(v.Name)
 
-              local n = GetConnectionEnemies("Vampire")
-
-              if n then repeat task.wait() Attack.Kill(n,_G.snaguine) until not _G.snaguine or n.Humanoid.Health <= 0 or not n.Parent
-
-              else _tp(CFrame.new(-6041.29248046875, 6.402710914611816, -1304.63330078125))
+                end
 
               end
-
-            else
-
-              replicated.Remotes.CommF_:InvokeServer("TravelDressrosa")
 
             end
 
-          end                                      
+          end
 
-          if GetM("Vampire Fang") >= 20 and GetM("Demonic Wisp") <= 19 then
+        else
 
-            if World3 then
+          local Castle_Mob = {"Galley Pirate","Galley Captain","Raider","Mercenary","Vampire","Zombie","Snow Trooper","Winter Warrior","Lab Subordinate","Horned Warrior","Magma Ninja","Lava Pirate","Ship Deckhand","Ship Engineer","Ship Steward","Ship Officer","Arctic Warrior","Snow Lurker","Sea Soldier","Water Fighter"}
 
-              local n = GetConnectionEnemies("Demonic Soul")
+          for i = 1,#Castle_Mob do
 
-		      if n then repeat task.wait() Attack.Kill(n,_G.snaguine) until not _G.snaguine or n.Humanoid.Health <= 0 or not n.Parent
+            if replicated:FindFirstChild(Castle_Mob[i]) then
 
-              else _tp(CFrame.new(-9495.6806640625, 453.58624267578125, 5977.3486328125)) 
+              for _,v in pairs(replicated:GetChildren()) do
+
+                if table.find(Castle_Mob, v.Name) then _tp(CFrameCastleRaid) end
 
               end
 
-             else
-
-               replicated.Remotes.CommF_:InvokeServer("TravelZou")
-
-             end
-
-           end
-
-           if GetM("Vampire Fang") >= 20 and GetM("Demonic Wisp") >= 20 and GetM("Dark Fragment") <= 1 then
-
-             if World2 then
-
-               local n = GetConnectionEnemies("Darkbeard")
-
-		       if n then repeat task.wait() Attack.Kill(black,_G.snaguine) until _G.snaguine or black.Humanoid.Health <= 0 or not black.Parent
-
-		      else _tp(CFrame.new(3798.4575195313, 13.826690673828, -3399.806640625))
-
-		      end
-
-		    else replicated.Remotes.CommF_:InvokeServer("TravelDressrosa")
-
-	        end
+            end
 
           end
-
-        else replicated.Remotes.CommF_:InvokeServer("BuySanguineArt")
 
         end
 
@@ -11480,7 +11626,7 @@ Stack:AddSection("Farming")
 
 Stack:AddToggle({
 
-    Name = "Auto Attack Tyrant",
+    Name = "Auto Attack Tyrant or the skies",
 
     Default = false,
 
@@ -12140,8 +12286,7 @@ Stack:AddSection("Observation Event + berry Farm")
 
 
 
-
-Main:AddToggle({
+Stack:AddToggle({
 
     Name = "Auto Farm Berry",
 
@@ -13011,7 +13156,7 @@ end)
 
 
 
-Server:AddSection("Fruits And Chest Hop Server")
+Server:AddSection("Fruits Hop Server")
 
 
 
@@ -13094,108 +13239,6 @@ HasChestInServer = function()
     return false
 
 end
-
-
-
-Server:AddToggle({
-
-    Name = "Auto Farming or Hop Server Chest",
-
-    Default = false,
-
-    Callback = function(Value)
-
-        _G.ChestFarmingHOP = Value
-
-    end
-
-})
-
-
-
-spawn(function()
-
-    while wait() do
-
-        pcall(function()
-
-            if _G.ChestFarmingHOP then
-
-                local CollectionService = game:GetService("CollectionService")
-
-                local chests = CollectionService:GetTagged("_ChestTagged")
-
-                local chestFound = false
-
-
-
-                for _, chest in ipairs(chests) do
-
-                    if chest and not chest:GetAttribute("IsDisabled") then
-
-                        chestFound = true
-
-                        local chestPos
-
-
-
-                        local success, result = pcall(function() return chest:GetPivot().Position end)
-
-                        if success then
-
-                            chestPos = result
-
-                        elseif chest:IsA("BasePart") then
-
-                            chestPos = chest.Position
-
-                        else
-
-                            chestPos = chest:FindFirstChild("RootPart") and chest.RootPart.Position
-
-                        end
-
-
-
-                        if chestPos then
-
-                            repeat
-
-                                task.wait()
-
-                                _tp(CFrame.new(chestPos))
-
-                                if (plr.Character.HumanoidRootPart.Position - chestPos).Magnitude <= 20 then
-
-                                end
-
-                            until not chest.Parent or chest:GetAttribute("IsDisabled") or not _G.ChestFarmingHOP
-
-                        end
-
-                        break 
-
-                    end
-
-                end
-
-
-
-                if not chestFound and _G.ChestFarmingHOP then
-
-                    wait(1)
-
-                    Hop()
-
-                end
-
-            end
-
-        end)
-
-    end
-
-end)
 
 
 
@@ -14437,13 +14480,13 @@ end)
 
 
 
-Leviathan:AddSection("Auto Leviathan Event")
+Kitsune:AddSection("Auto Leviathan Event [ BETA ]")
 
 
 
 -- Buy Spy Button
 
-Leviathan:AddButton({
+Kitsune:AddButton({
 
     Name = "Auto Buy Spy",
 
@@ -14459,7 +14502,7 @@ Leviathan:AddButton({
 
 -- Auto Teleport Frozen Dimension
 
-Leviathan:AddToggle({
+Kitsune:AddToggle({
 
     Name = "Auto Teleport Frozen Dimension",
 
@@ -14507,7 +14550,7 @@ end)
 
 -- Auto Drive To Hydra Island
 
-Leviathan:AddToggle({
+Kitsune:AddToggle({
 
     Name = "Auto Drive To Hydra Island",
 
@@ -14601,7 +14644,7 @@ end)
 
 -- Auto Attack Leviathan
 
-Leviathan:AddToggle({
+Kitsune:AddToggle({
 
     Name = "Auto Attack Leviathan",
 
@@ -14619,11 +14662,12 @@ Leviathan:AddToggle({
 
 
 
-Kitsune:AddSection("Auto Kitsune Event")
+Kitsune:AddSection("Auto Island Kitsune")
 
 
 
 -- Auto Find Kitsune Island
+
 
 Kitsune:AddToggle({
 
@@ -14956,562 +15000,6 @@ Kitsune:AddButton({
     end
 
 })
-
-
-
-Dojo:AddSection("Auto Dojo Quests")
-
-
-
--- Teleport To Dragon Dojo
-
-Dojo:AddButton({
-
-    Name = "Teleport To Dragon Dojo House",
-
-    Callback = function()
-
-        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(5661.5322265625, 1013.0907592773, -334.96499633789))
-
-        topos(CFrame.new(5814.4272460938, 1208.3267822266, 884.57855224609))
-
-    end
-
-})
-
-
-
--- Auto Dojo Trainer
-
-Dojo:AddToggle({
-
-    Name = "Auto Dojo Trainer Quests",
-
-    Description = "",
-
-    Default = false,
-
-    Callback = function(value)
-
-        _G.Dojoo = value
-
-    end
-
-})
-
-
-
--- Hàm lấy tên Belt
-
-local function printBeltName(data)
-
-    if type(data) == "table" and data.Quest and data.Quest.BeltName then
-
-        return data.Quest.BeltName
-
-    end
-
-end
-
-
-
--- Auto Dojo Trainer Loop
-
-spawn(function()
-
-    while wait(Sec) do
-
-        if _G.Dojoo then
-
-            pcall(function()
-
-                local interactRemote = L_1_[18].Modules.Net:FindFirstChild("RF/InteractDragonQuest")
-
-                
-
-                -- Request quest
-
-                local questData = interactRemote:InvokeServer({
-
-                    NPC = "Dojo Trainer",
-
-                    Command = "RequestQuest"
-
-                })
-
-                
-
-                local beltName = printBeltName(questData)
-
-                
-
-                if debug == false and (not questData and not beltName) then
-
-                    _tp(CFrame.new(5865.0234375, 1208.3154296875, 871.15185546875))
-
-                    debug = true
-
-                    
-
-                elseif debug == true and (CFrame.new(5865.0234375, 1208.3154296875, 871.15185546875).Position - L_1_[45].Character.HumanoidRootPart.Position).Magnitude <= 50 then
-
-                    
-
-                    -- Xử lý theo màu belt
-
-                    if beltName == "White" then
-
-                        local enemy = GetConnectionEnemies("Skull Slayer")
-
-                        if enemy then
-
-                            repeat
-
-                                task.wait()
-
-                                L_1_[4].Kill(enemy, _G.Dojoo)
-
-                            until not questData or not _G.Dojoo or not L_1_[4].Alive(enemy)
-
-                        else
-
-                            _tp(CFrame.new(-16759.58984375, 71.283767700195, 1595.3399658203))
-
-                        end
-
-                        
-
-                    elseif beltName == "Yellow" then
-
-                        repeat
-
-                            task.wait()
-
-                            _G.SeaBeast1 = true
-
-                            _G.TerrorShark = true
-
-                            _G.Shark = true
-
-                            _G.Piranha = true
-
-                            _G.MobCrew = true
-
-                            _G.FishBoat = true
-
-                            _G.SailBoats = true
-
-                        until not _G.Dojoo or not questData
-
-                        
-
-                        _G.SeaBeast1 = false
-
-                        _G.TerrorShark = false
-
-                        _G.Shark = false
-
-                        _G.Piranha = false
-
-                        _G.MobCrew = false
-
-                        _G.FishBoat = false
-
-                        _G.SailBoats = false
-
-                        
-
-                    elseif beltName == "Green" then
-
-                        repeat
-
-                            task.wait()
-
-                            _G.SailBoats = true
-
-                        until not _G.Dojoo or not questData
-
-                        _G.SailBoats = false
-
-                        
-
-                    elseif beltName == "Purple" then
-
-                        repeat
-
-                            task.wait()
-
-                            _G.FarmEliteHunt = true
-
-                        until not _G.Dojoo or not questData
-
-                        _G.FarmEliteHunt = false
-
-                        
-
-                    elseif beltName == "Red" then
-
-                        repeat
-
-                            task.wait()
-
-                            _G.SailBoats = true
-
-                            _G.FishBoat = true
-
-                        until not _G.Dojoo or not questData
-
-                        _G.SailBoats = false
-
-                        _G.FishBoat = false
-
-                        
-
-                    elseif beltName == "Black" then
-
-                        repeat
-
-                            task.wait()
-
-                            if workspace.Map:FindFirstChild("PrehistoricIsland") or workspace._WorldOrigin.Locations:FindFirstChild("Prehistoric Island") then
-
-                                _G.Prehis_Find = true
-
-                                if workspace.Map.PrehistoricIsland.Core.ActivationPrompt:FindFirstChild("ProximityPrompt", true) then
-
-                                    _G.Prehis_Skills = false
-
-                                    _G.Prehis_Find = true
-
-                                else
-
-                                    _G.Prehis_Skills = true
-
-                                    _G.Prehis_Find = false
-
-                                end
-
-                            else
-
-                                _G.Prehis_Find = true
-
-                                _G.Prehis_Skills = false
-
-                            end
-
-                        until not _G.Dojoo or not questData
-
-                        _G.Prehis_Find = false
-
-                        _G.Prehis_Skills = false
-
-                        
-
-                    elseif beltName == "Orange" or beltName == "Blue" then
-
-                        -- Do nothing
-
-                    end
-
-                end
-
-                
-
-                -- Claim quest nếu không có quest
-
-                if not questData then
-
-                    debug = false
-
-                    interactRemote:InvokeServer({
-
-                        NPC = "Dojo Trainer",
-
-                        Command = "ClaimQuest"
-
-                    })
-
-                end
-
-            end)
-
-        end
-
-    end
-
-end)
-
-
-
-Dojo:AddToggle({
-
-    Name = "Auto Dragon Hunter Quests",
-
-    Description = "",
-
-    Default = false,
-
-    Callback = function(value)
-
-        _G.FarmBlazeEM = value
-
-    end
-
-})
-
-
-
--- Hàm kiểm tra quest
-
-local function checkQuesta()
-
-    local result = {found = false, target = nil, count = nil, type = nil}
-
-    
-
-    pcall(function()
-
-        local hunterRemote = game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Net"):WaitForChild("RF/DragonHunter")
-
-        local questData = hunterRemote:InvokeServer({Context = "Check"})
-
-        
-
-        if questData and questData.Text then
-
-            result.found = true
-
-            local text = tostring(questData.Text)
-
-            
-
-            if string.find(text, "Defeat") then
-
-                result.type = 1
-
-                result.count = tonumber(string.sub(text, 8, 9))
-
-                
-
-                local targets = {"Hydra Enforcer", "Venomous Assailant"}
-
-                for _, target in pairs(targets) do
-
-                    if string.find(text, target) then
-
-                        result.target = target
-
-                        break
-
-                    end
-
-                end
-
-                
-
-            elseif string.find(text, "Destroy") then
-
-                result.type = 2
-
-                result.count = 10
-
-            end
-
-        end
-
-    end)
-
-    
-
-    return result.found, result.target, result.count, result.type
-
-end
-
-
-
--- Hàm kiểm tra quay lại Dojo
-
-local function BackTODoJo()
-
-    for _, notification in pairs(game.Players.LocalPlayer.PlayerGui.Notifications:GetChildren()) do
-
-        if notification.Name == "NotificationTemplate" then
-
-            if string.find(notification.Text, "Head back to the Dojo to complete more tasks") then
-
-                return true
-
-            end
-
-        end
-
-    end
-
-    return false
-
-end
-
-
-
--- Hàm kill mob Dragon
-
-local function DragonMobClear(isKill, mobName, tpPos)
-
-    if workspace.Enemies:FindFirstChild(mobName) then
-
-        for _, enemy in pairs(workspace.Enemies:GetChildren()) do
-
-            if enemy.Name == mobName and L_1_[4].Alive(enemy) then
-
-                if isKill then
-
-                    L_1_[4].Kill(enemy, _G.FarmBlazeEM)
-
-                end
-
-            end
-
-        end
-
-    else
-
-        _tp(tpPos)
-
-    end
-
-end
-
-
-
--- Auto Dragon Hunter Loop
-
-spawn(function()
-
-    while wait() do
-
-        if _G.FarmBlazeEM then
-
-            pcall(function()
-
-                local found, target, count, questType = checkQuesta()
-
-                
-
-                if found == true and not BackTODoJo() then
-
-                    if questType == 1 then
-
-                        if target == "Hydra Enforcer" or target == "Venomous Assailant" then
-
-                            repeat
-
-                                wait()
-
-                                DragonMobClear(true, target, CFrame.new(4620.6157226562, 1002.2954711914, 399.08688354492))
-
-                            until not _G.FarmBlazeEM or not found or BackTODoJo()
-
-                        end
-
-                        
-
-                    elseif questType == 2 then
-
-                        local bamboo = workspace.Map.Waterfall.IslandModel:FindFirstChild("Meshes/bambootree", true)
-
-                        if bamboo then
-
-                            repeat
-
-                                wait()
-
-                                spawn(function()
-
-                                    _tp(bamboo.CFrame * CFrame.new(4, 0, 0))
-
-                                end)
-
-                                
-
-                                if (bamboo.Position - Root.Position).Magnitude <= 200 then
-
-                                    MousePos = bamboo.Position
-
-                                    Useskills("Melee", "Z")
-
-                                    Useskills("Melee", "X")
-
-                                    Useskills("Melee", "C")
-
-                                    wait(.5)
-
-                                    Useskills("Sword", "Z")
-
-                                    Useskills("Sword", "X")
-
-                                    wait(.5)
-
-                                    Useskills("Blox Fruit", "Z")
-
-                                    Useskills("Blox Fruit", "X")
-
-                                    Useskills("Blox Fruit", "C")
-
-                                    wait(.5)
-
-                                    Useskills("Gun", "Z")
-
-                                    Useskills("Gun", "X")
-
-                                end
-
-                            until not _G.FarmBlazeEM or not found or BackTODoJo()
-
-                        end
-
-                    end
-
-                else
-
-                    _tp(CFrame.new(5813, 1208, 884))
-
-                    DragonMobClear(false, nil, nil)
-
-                end
-
-            end)
-
-        end
-
-    end
-
-end)
-
-
-
--- Auto collect Ember
-
-spawn(function()
-
-    while wait(.1) do
-
-        if _G.FarmBlazeEM then
-
-            pcall(function()
-
-                if workspace.EmberTemplate and workspace.EmberTemplate:FindFirstChild("Part") then
-
-                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = workspace.EmberTemplate.Part.CFrame
-
-                end
-
-            end)
-
-        end
-
-    end
-
-end)
 
 
 
@@ -16028,50 +15516,6 @@ spawn(function()
             end
 
         end)
-
-    end
-
-end)
-
-
-
--- Tween to Drago Trials
-
-Dojo:AddToggle({
-
-    Name = "Teleport to Drago Trials",
-
-    Description = "",
-
-    Default = false,
-
-    Callback = function(value)
-
-        _G.TpDrago_Prehis = value
-
-    end
-
-})
-
-
-
--- Tween to Drago Trials Loop
-
-spawn(function()
-
-    while wait(Sec) do
-
-        if _G.TpDrago_Prehis then
-
-            local trialTeleport = workspace.Map.PrehistoricIsland:FindFirstChild("TrialTeleport")
-
-            if trialTeleport and trialTeleport:IsA("Part") then
-
-                _tp(CFrame.new(trialTeleport.Position))
-
-            end
-
-        end
 
     end
 
@@ -17849,7 +17293,7 @@ Fruits:AddButton({
 
         Window:Dialog({
 
-            Title = "SynTrax Hub",
+            Title = "Buy",
 
             Content = "Do You Want Random Fruits?",
 
@@ -18179,13 +17623,13 @@ Fruits:AddButton({
 
 
 
-Dungeon:AddSection("Auto Dungeon")
+Fruits:AddSection("Auto Dungeon")
 
 
 
 -- Auto Farm Dungeon Toggle
 
-AutoFarmDungeon = Dungeon:AddToggle({
+AutoFarmDungeon = Fruits:AddToggle({
 
     Name = "Auto Farm Dungeon",
 
@@ -18289,7 +17733,7 @@ end
 
 TPFloor1_Flag = false
 
-TPFloor1 = Dungeon:AddToggle({
+TPFloor1 = Fruits:AddToggle({
 
     Name = "TP Exit (Current Floor)",
 
@@ -18337,7 +17781,7 @@ end)
 
 TPFloor2_Flag = false
 
-TPFloor2 = Dungeon:AddToggle({
+TPFloor2 = Fruits:AddToggle({
 
     Name = "TP Exit (From Entrance)",
 
@@ -18435,7 +17879,7 @@ end
 
 TPFloor3_Flag = false
 
-TPFloor3 = Dungeon:AddToggle({
+TPFloor3 = Fruits:AddToggle({
 
     Name = "TP Exit (Highest Floor)",
 
@@ -18529,7 +17973,7 @@ end
 
 TPFloor4_Flag = false
 
-TPFloor4 = Dungeon:AddToggle({
+TPFloor4 = Fruits:AddToggle({
 
     Name = "TP Exit (Closest)",
 
@@ -19550,46 +18994,6 @@ spawn(function()
     end
 
 end)
-
-
-
--- Teleport to Temple of Time
-
-Race:AddButton({
-
-    Name = "Auto Teleport to Temple of Time Trials",
-
-    Description = "",
-
-    Callback = function()
-
-        local player = game.Players.LocalPlayer
-
-        local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-
-        if hrp then
-
-            hrp.CFrame = CFrame.new(28286.35546875, 14895.301757812, 102.62469482422)
-
-        end
-
-        
-
-        if not workspace.Map:FindFirstChild("Temple of Time") and World3 then
-
-            local mapStash = game:GetService("ReplicatedStorage"):FindFirstChild("MapStash")
-
-            if mapStash and mapStash:FindFirstChild("Temple of Time") then
-
-                mapStash["Temple of Time"].Parent = workspace.Map
-
-            end
-
-        end
-
-    end
-
-})
 
 
 
@@ -23256,6 +22660,50 @@ local function isnil(thing)
     return (thing == nil)
 
 end
+
+
+
+Travel:AddSection("Teleport To Temple Of Time")
+
+
+
+-- Teleport to Temple of Time
+
+Travel:AddButton({
+
+    Name = "Auto Teleport to Temple of Time Trials",
+
+    Description = "",
+
+    Callback = function()
+
+        local player = game.Players.LocalPlayer
+
+        local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+
+        if hrp then
+
+            hrp.CFrame = CFrame.new(28286.35546875, 14895.301757812, 102.62469482422)
+
+        end
+
+        
+
+        if not workspace.Map:FindFirstChild("Temple of Time") and World3 then
+
+            local mapStash = game:GetService("ReplicatedStorage"):FindFirstChild("MapStash")
+
+            if mapStash and mapStash:FindFirstChild("Temple of Time") then
+
+                mapStash["Temple of Time"].Parent = workspace.Map
+
+            end
+
+        end
+
+    end
+
+})
 
 
 
