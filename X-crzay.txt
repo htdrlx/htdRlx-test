@@ -5206,7 +5206,7 @@ local Library = loadstring(game:HttpGet("https://pastefy.app/eVNXx71A/raw"))()
 
 local Window = Library:MakeWindow({
 
-    Title = " : Blox Fruits ",
+    Title = " X-crzay : Blox Fruits ",
 
     SubTitle = "the script discord skirting hub and fire script remake by T-Danh DZ",
 
