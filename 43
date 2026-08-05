@@ -1,0 +1,38 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+-- Cấu hình cấu trúc tăng tốc và kích hoạt hệ thống tự động thắng
+local SPEED_INCREMENT = 1         -- Mỗi lần bấm tăng 1 tốc độ
+local DETECTION_THRESHOLD = 20     -- Ngưỡng tốc độ mặc định là 16. Nếu vượt quá sẽ bị tính là hack
+
+local function onCheatButtonPressed()
+	local character = player.Character
+	if not character then return end
+	
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		-- Tăng tốc độ của nhân vật lên
+		humanoid.WalkSpeed = humanoid.WalkSpeed + SPEED_INCREMENT
+		print("Tốc độ hiện tại: " .. humanoid.WalkSpeed)
+		
+		-- Kiểm tra xem tốc độ đã vượt ngưỡng để hệ thống chống hack kích hoạt chưa
+		if humanoid.WalkSpeed > DETECTION_THRESHOLD then
+			print("Phát hiện hack tốc độ! Đang kích hoạt cơ chế tự động thắng của hệ thống chống hack...")
+			
+			-- Gọi hàm xử lý tự động thắng tại đây
+			triggerAutoWin()
+		end
+	end
+end
+
+function triggerAutoWin()
+	-- Code xử lý khi hệ thống phát hiện hack và tự động kết thúc game
+	-- Ví dụ: Chuyển người chơi đến khu vực chiến thắng hoặc kích hoạt UI Win
+	print("Hệ thống chống hack hoạt động tốt: Người chơi đã tự động THẮNG!")
+	
+	-- Bạn có thể thêm code hiển thị bảng Winner UI của bạn ở đây:
+	-- player.PlayerGui.WinScreen.Enabled = true
+end
+
+-- Kết nối sự kiện bấm nút (Giả sử script nằm trong một TextButton)
+script.Parent.MouseButton1Click:Connect(onCheatButtonPressed)
