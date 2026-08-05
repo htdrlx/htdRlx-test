@@ -1,0 +1,389 @@
+-- // BLADE BALL HUB v3 - Fluent UI
+-- // Compatible: Delta X Lite
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local LocalPlayer = Players.LocalPlayer
+
+-- // Load Fluent UI
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+-- // SETTINGS
+local Settings = {
+    AutoParry = true,
+    AutoSkill = true,
+    BallRedirect = false,
+    ESP = true,
+    NoHead = false,
+    NoLegs = false,
+    ExplosionEffect = false,
+    AutoSpam = false,
+    TriggerSpam = false,
+    SpamDelay = 0.05,
+    TriggerRange = 30,
+    ParryRange = 25,
+    SkillDelay = 0.1,
+}
+
+-- // Spam helper
+local lastSpam = 0
+local function DoSpam()
+    local now = tick()
+    if now - lastSpam < Settings.SpamDelay then return end
+    lastSpam = now
+    for _, remote in ipairs(game:GetDescendants()) do
+        if remote:IsA("RemoteEvent") then
+            local n = remote.Name:lower()
+            if n:find("parry") or n:find("block") or n:find("skill") or n:find("ability") then
+                pcall(function() remote:FireServer() end)
+            end
+        end
+    end
+end
+
+-- // Build Window
+local Window = Fluent:CreateWindow({
+    Title = "Blade Ball Hub",
+    SubTitle = "v3 | Delta X Lite",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(410, 450),
+    Acrylic = false,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.RightControl,
+})
+
+-- Logo (ImageLabel trên TitleBar)
+-- Fluent không có built-in logo nên ta thêm thủ công vào ScreenGui
+task.spawn(function()
+    task.wait(0.5)
+    -- Tìm ScreenGui của Fluent
+    for _, gui in ipairs(game:GetService("CoreGui"):GetChildren()) do
+        if gui:IsA("ScreenGui") then
+            for _, frame in ipairs(gui:GetDescendants()) do
+                -- Tìm title bar frame
+                if frame:IsA("Frame") and frame.Name:lower():find("title") then
+                    local logo = Instance.new("ImageLabel")
+                    logo.Size = UDim2.new(0, 28, 0, 28)
+                    logo.Position = UDim2.new(0, 8, 0.5, -14)
+                    logo.BackgroundTransparency = 1
+                    logo.Image = "rbxassetid://109508733644147"
+                    logo.ScaleType = Enum.ScaleType.Fit
+                    logo.Parent = frame
+                    break
+                end
+            end
+        end
+    end
+end)
+
+-- // Tabs
+local Tabs = {
+    Combat  = Window:AddTab({ Title = " Combat",  Icon = "sword" }),
+    Spam    = Window:AddTab({ Title = " Spam",    Icon = "zap" }),
+    Visual  = Window:AddTab({ Title = " Visual",  Icon = "eye" }),
+    Misc    = Window:AddTab({ Title = " Misc",    Icon = "settings" }),
+}
+
+-- ============ COMBAT TAB ============
+Tabs.Combat:AddToggle("AutoParry", {
+    Title = "Auto Parry",
+    Description = "Tự động parry khi bóng lại gần",
+    Default = Settings.AutoParry,
+    Callback = function(v) Settings.AutoParry = v end,
+})
+
+Tabs.Combat:AddToggle("AutoSkill", {
+    Title = "Auto Skill",
+    Description = "Tự động dùng skill",
+    Default = Settings.AutoSkill,
+    Callback = function(v) Settings.AutoSkill = v end,
+})
+
+Tabs.Combat:AddToggle("BallRedirect", {
+    Title = "Ball Redirect",
+    Description = "Đổi hướng bóng khi lại gần",
+    Default = Settings.BallRedirect,
+    Callback = function(v) Settings.BallRedirect = v end,
+})
+
+Tabs.Combat:AddSlider("ParryRange", {
+    Title = "Parry Range",
+    Description = "Khoảng cách parry tự động",
+    Default = Settings.ParryRange,
+    Min = 5,
+    Max = 60,
+    Rounding = 1,
+    Callback = function(v) Settings.ParryRange = v end,
+})
+
+-- ============ SPAM TAB ============
+Tabs.Spam:AddToggle("AutoSpam", {
+    Title = "Auto Spam (liên tục)",
+    Description = "Spam parry/skill liên tục",
+    Default = Settings.AutoSpam,
+    Callback = function(v) Settings.AutoSpam = v end,
+})
+
+Tabs.Spam:AddToggle("TriggerSpam", {
+    Title = "Trigger Spam",
+    Description = "Chỉ spam khi bóng đến gần bạn",
+    Default = Settings.TriggerSpam,
+    Callback = function(v) Settings.TriggerSpam = v end,
+})
+
+Tabs.Spam:AddSlider("TriggerRange", {
+    Title = "Trigger Range",
+    Description = "Range để kích hoạt Trigger Spam",
+    Default = Settings.TriggerRange,
+    Min = 5,
+    Max = 80,
+    Rounding = 1,
+    Callback = function(v) Settings.TriggerRange = v end,
+})
+
+Tabs.Spam:AddSlider("SpamDelay", {
+    Title = "Spam Delay (giây)",
+    Description = "Tốc độ spam (thấp = nhanh hơn)",
+    Default = 5,
+    Min = 1,
+    Max = 20,
+    Rounding = 1,
+    Callback = function(v) Settings.SpamDelay = v / 100 end,
+})
+
+-- Hold to Spam Button
+local spamHolding = false
+Tabs.Spam:AddButton({
+    Title = " HOLD TO SPAM",
+    Description = "Nhấn giữ để spam tức thì",
+    Callback = function()
+        spamHolding = true
+        task.delay(0.1, function() spamHolding = false end)
+    end,
+})
+
+-- ============ VISUAL TAB ============
+Tabs.Visual:AddToggle("ESP", {
+    Title = "Ball ESP",
+    Description = "Hiện viền đỏ + tên cho bóng",
+    Default = Settings.ESP,
+    Callback = function(v) Settings.ESP = v end,
+})
+
+Tabs.Visual:AddToggle("NoHead", {
+    Title = "No Head",
+    Description = "Ẩn đầu nhân vật",
+    Default = Settings.NoHead,
+    Callback = function(v)
+        Settings.NoHead = v
+        local char = LocalPlayer.Character
+        if char then
+            local head = char:FindFirstChild("Head")
+            if head then
+                head.Transparency = v and 1 or 0
+                local mesh = head:FindFirstChildOfClass("SpecialMesh")
+                if mesh then mesh.Scale = v and Vector3.new(0,0,0) or Vector3.new(1,1,1) end
+            end
+        end
+    end,
+})
+
+Tabs.Visual:AddToggle("NoLegs", {
+    Title = "No Legs",
+    Description = "Ẩn chân nhân vật",
+    Default = Settings.NoLegs,
+    Callback = function(v)
+        Settings.NoLegs = v
+        local char = LocalPlayer.Character
+        if char then
+            for _, limb in ipairs({"Left Leg","Right Leg","LeftLowerLeg","RightLowerLeg","LeftUpperLeg","RightUpperLeg","LeftFoot","RightFoot"}) do
+                local part = char:FindFirstChild(limb)
+                if part then part.Transparency = v and 1 or 0 end
+            end
+        end
+    end,
+})
+
+Tabs.Visual:AddToggle("ExplosionFX", {
+    Title = "Explosion FX",
+    Description = "Hiệu ứng nổ khi bóng gần",
+    Default = Settings.ExplosionEffect,
+    Callback = function(v) Settings.ExplosionEffect = v end,
+})
+
+-- ============ MISC TAB ============
+Tabs.Misc:AddButton({
+    Title = "Unlock All Skins & Swords",
+    Description = "Mở khóa tất cả skin/sword (client)",
+    Callback = function()
+        for _, gui in ipairs(LocalPlayer.PlayerGui:GetDescendants()) do
+            if gui:IsA("TextButton") and (gui.Text:lower():find("lock") or gui.Text:lower():find("buy")) then
+                gui.Text = "Equip"
+                gui.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+            end
+            if gui:IsA("ImageButton") then gui.Active = true end
+            if gui.Name:lower():find("lock") then gui.Visible = false end
+        end
+        Fluent:Notify({ Title = "Unlock", Content = "Đã unlock client-side!", Duration = 3 })
+    end,
+})
+
+Tabs.Misc:AddButton({
+    Title = "Rejoin Server",
+    Description = "Vào server mới",
+    Callback = function()
+        game:GetService("TeleportService"):Teleport(game.PlaceId, LocalPlayer)
+    end,
+})
+
+Tabs.Misc:AddParagraph({
+    Title = "Hướng dẫn",
+    Content = "RightCtrl = Ẩn/Hiện menu\nTrigger Spam = an toàn nhất\nAuto Spam = dễ bị detect hơn",
+})
+
+-- // ESP System
+local ESPFolder = Instance.new("Folder")
+ESPFolder.Name = "BallESP"
+ESPFolder.Parent = workspace
+
+local function AddBallESP(ball)
+    if ESPFolder:FindFirstChild(ball.Name.."_hl") then return end
+    local hl = Instance.new("SelectionBox")
+    hl.Name = ball.Name.."_hl"
+    hl.Adornee = ball
+    hl.Color3 = Color3.fromRGB(255, 50, 50)
+    hl.LineThickness = 0.05
+    hl.SurfaceTransparency = 0.7
+    hl.SurfaceColor3 = Color3.fromRGB(255, 100, 100)
+    hl.Parent = ESPFolder
+
+    local bb = Instance.new("BillboardGui")
+    bb.Size = UDim2.new(0, 60, 0, 25)
+    bb.AlwaysOnTop = true
+    bb.Adornee = ball
+    bb.Parent = ESPFolder
+
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1,0,1,0)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = "🔴 BALL"
+    lbl.TextColor3 = Color3.fromRGB(255,50,50)
+    lbl.TextSize = 13
+    lbl.Font = Enum.Font.GothamBold
+    lbl.Parent = bb
+end
+
+-- // Main Loop
+local lastSkillTime = 0
+
+RunService.Heartbeat:Connect(function()
+    local char = LocalPlayer.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    local ballNearby = false
+
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("BasePart") and (obj.Name == "Ball" or obj.Name == "KillerBall" or obj.Name:lower():find("ball")) then
+
+            if Settings.ESP then AddBallESP(obj) end
+
+            local dist = (obj.Position - hrp.Position).Magnitude
+
+            if dist <= Settings.TriggerRange then ballNearby = true end
+
+            -- Auto Parry
+            if Settings.AutoParry and dist <= Settings.ParryRange then
+                for _, remote in ipairs(game:GetDescendants()) do
+                    if remote:IsA("RemoteEvent") then
+                        local n = remote.Name:lower()
+                        if n:find("parry") or n:find("block") then
+                            pcall(function() remote:FireServer() end)
+                        end
+                    end
+                end
+            end
+
+            -- Ball Redirect
+            if Settings.BallRedirect then
+                local bv = obj:FindFirstChild("BodyVelocity")
+                if bv then
+                    local dir = (hrp.Position - obj.Position).Unit
+                    bv.Velocity = -dir * bv.Velocity.Magnitude
+                end
+            end
+
+            -- Explosion FX
+            if Settings.ExplosionEffect and dist <= 8 then
+                local exp = Instance.new("Explosion")
+                exp.Position = obj.Position
+                exp.BlastRadius = 0
+                exp.BlastPressure = 0
+                exp.ExplosionType = Enum.ExplosionType.NoCraters
+                exp.Parent = workspace
+            end
+        end
+    end
+
+    -- Auto Skill
+    if Settings.AutoSkill then
+        local now = tick()
+        if now - lastSkillTime >= Settings.SkillDelay then
+            lastSkillTime = now
+            for _, remote in ipairs(game:GetDescendants()) do
+                if remote:IsA("RemoteEvent") then
+                    local n = remote.Name:lower()
+                    if n:find("skill") or n:find("ability") then
+                        pcall(function() remote:FireServer() end)
+                    end
+                end
+            end
+        end
+    end
+
+    -- Spam modes
+    if Settings.AutoSpam then DoSpam() end
+    if Settings.TriggerSpam and ballNearby then DoSpam() end
+    if spamHolding then DoSpam() end
+end)
+
+-- // Unlock on GUI load
+LocalPlayer.PlayerGui.DescendantAdded:Connect(function()
+    task.wait(0.5)
+    for _, gui in ipairs(LocalPlayer.PlayerGui:GetDescendants()) do
+        if gui.Name:lower():find("lock") then gui.Visible = false end
+    end
+end)
+
+-- // Respawn
+LocalPlayer.CharacterAdded:Connect(function(char)
+    task.wait(1)
+    if Settings.NoHead then
+        local head = char:FindFirstChild("Head")
+        if head then
+            head.Transparency = 1
+            local mesh = head:FindFirstChildOfClass("SpecialMesh")
+            if mesh then mesh.Scale = Vector3.new(0,0,0) end
+        end
+    end
+    if Settings.NoLegs then
+        for _, limb in ipairs({"Left Leg","Right Leg","LeftLowerLeg","RightLowerLeg","LeftUpperLeg","RightUpperLeg","LeftFoot","RightFoot"}) do
+            local part = char:FindFirstChild(limb)
+            if part then part.Transparency = 1 end
+        end
+    end
+end)
+
+-- Notify loaded
+Fluent:Notify({
+    Title = "Blade Ball Hub v3",
+    Content = "Script loaded! RightCtrl = ẩn/hiện menu",
+    Duration = 4,
+})
+
+Window:SelectTab(1)
+print("[BladeBall Hub v3] Loaded - Fluent UI")
