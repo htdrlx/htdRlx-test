@@ -1,0 +1,255 @@
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+
+local GUI_NAME = "XCrazyClickTPFix"
+
+-- Xóa GUI cũ
+pcall(function()
+    local old = CoreGui:FindFirstChild(GUI_NAME)
+    if old then
+        old:Destroy()
+    end
+end)
+
+pcall(function()
+    local old = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild(GUI_NAME)
+    if old then
+        old:Destroy()
+    end
+end)
+
+local function GetGuiParent()
+    local success = pcall(function()
+        return CoreGui:GetChildren()
+    end)
+
+    if success then
+        return CoreGui
+    end
+
+    return LocalPlayer:WaitForChild("PlayerGui")
+end
+
+local guiParent = GetGuiParent()
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = GUI_NAME
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = guiParent
+
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 180, 0, 45)
+Frame.Position = UDim2.new(0.5, -90, 0.1, 0)
+Frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+Frame.Active = true
+Frame.Draggable = true
+Frame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = Frame
+
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Color = Color3.fromRGB(0, 170, 255)
+UIStroke.Thickness = 2
+UIStroke.Parent = Frame
+
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Size = UDim2.new(1, 0, 1, 0)
+ToggleBtn.BackgroundTransparency = 1
+ToggleBtn.Text = "FIX CAM TP: TẮT"
+ToggleBtn.Font = Enum.Font.GothamBold
+ToggleBtn.TextSize = 14
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+ToggleBtn.Parent = Frame
+
+local isTpEnabled = false
+local Moving = false
+local MoveConnection = nil
+local NoclipConnection = nil
+
+local function StopMove()
+    if MoveConnection then
+        MoveConnection:Disconnect()
+        MoveConnection = nil
+    end
+
+    if NoclipConnection then
+        NoclipConnection:Disconnect()
+        NoclipConnection = nil
+    end
+
+    Moving = false
+end
+
+local function GetCharacter()
+    local Character = LocalPlayer.Character
+
+    if not Character then
+        return nil
+    end
+
+    local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+    local HRP = Character:FindFirstChild("HumanoidRootPart")
+
+    if not Humanoid or not HRP then
+        return nil
+    end
+
+    return Character, Humanoid, HRP
+end
+
+ToggleBtn.MouseButton1Click:Connect(function()
+    isTpEnabled = not isTpEnabled
+
+    if isTpEnabled then
+        ToggleBtn.Text = "FIX CAM TP: BẬT"
+        ToggleBtn.TextColor3 = Color3.fromRGB(0, 170, 255)
+    else
+        ToggleBtn.Text = "FIX CAM TP: TẮT"
+        ToggleBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+
+        StopMove()
+    end
+end)
+
+Mouse.Button1Down:Connect(function()
+    if not isTpEnabled or Moving then
+        return
+    end
+
+    local Character, Humanoid, HRP = GetCharacter()
+
+    if not Character then
+        return
+    end
+
+    local Camera = workspace.CurrentCamera
+
+    local targetPos = Mouse.Hit.Position
+    local startCFrame = HRP.CFrame
+
+    -- Giữ nguyên hướng nhìn hiện tại
+    local targetCFrame = CFrame.new(
+        targetPos + Vector3.new(0, 3, 0)
+    ) * CFrame.Angles(
+        select(1, startCFrame:ToEulerAnglesXYZ()),
+        select(2, startCFrame:ToEulerAnglesXYZ()),
+        select(3, startCFrame:ToEulerAnglesXYZ())
+    )
+
+    local distance = (HRP.Position - targetPos).Magnitude
+
+    -- Tốc độ bay
+    local speed = 300
+
+    -- Giới hạn để tránh duration quá ngắn gây giật
+    local duration = math.max(distance / speed, 0.08)
+
+    Moving = true
+
+    -- =========================
+    -- FIX CAMERA
+    -- =========================
+
+    local oldCameraType = Camera.CameraType
+    local oldCameraSubject = Camera.CameraSubject
+
+    Camera.CameraType = Enum.CameraType.Custom
+    Camera.CameraSubject = Humanoid
+
+    -- =========================
+    -- FIX HUMANOID
+    -- =========================
+
+    local oldAutoRotate = Humanoid.AutoRotate
+    local oldPlatformStand = Humanoid.PlatformStand
+
+    Humanoid.AutoRotate = false
+
+    -- Không để Humanoid cố kéo nhân vật
+    Humanoid.PlatformStand = true
+
+    -- =========================
+    -- NOCLIP
+    -- =========================
+
+    NoclipConnection = RunService.Stepped:Connect(function()
+        if not Character or not Character.Parent then
+            return
+        end
+
+        for _, v in ipairs(Character:GetDescendants()) do
+            if v:IsA("BasePart") then
+                v.CanCollide = false
+            end
+        end
+    end)
+
+    -- Xóa velocity cũ
+    HRP.AssemblyLinearVelocity = Vector3.zero
+    HRP.AssemblyAngularVelocity = Vector3.zero
+
+    -- =========================
+    -- SMOOTH MOVE
+    -- =========================
+
+    local startTime = os.clock()
+
+    MoveConnection = RunService.RenderStepped:Connect(function()
+        if not Moving then
+            return
+        end
+
+        if not Character.Parent or not HRP.Parent then
+            StopMove()
+            return
+        end
+
+        local elapsed = os.clock() - startTime
+        local alpha = math.clamp(elapsed / duration, 0, 1)
+
+        -- SmoothStep để giảm giật lúc bắt đầu/kết thúc
+        local smoothAlpha =
+            alpha * alpha * (3 - 2 * alpha)
+
+        local newCFrame =
+            startCFrame:Lerp(targetCFrame, smoothAlpha)
+
+        HRP.CFrame = newCFrame
+
+        -- Triệt velocity để physics không làm rung
+        HRP.AssemblyLinearVelocity = Vector3.zero
+        HRP.AssemblyAngularVelocity = Vector3.zero
+
+        if alpha >= 1 then
+            StopMove()
+
+            -- Đặt chính xác vị trí cuối
+            HRP.CFrame = targetCFrame
+
+            -- Xóa velocity lần cuối
+            HRP.AssemblyLinearVelocity = Vector3.zero
+            HRP.AssemblyAngularVelocity = Vector3.zero
+
+            -- =========================
+            -- RESTORE
+            -- =========================
+
+            Humanoid.AutoRotate = oldAutoRotate
+            Humanoid.PlatformStand = oldPlatformStand
+
+            Camera.CameraType = oldCameraType
+            Camera.CameraSubject = oldCameraSubject
+        end
+    end)
+end)
+
+-- Tự dọn khi respawn
+LocalPlayer.CharacterAdded:Connect(function()
+    StopMove()
+end)
