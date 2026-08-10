@@ -1,0 +1,174 @@
+local Players     = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local CoreGui     = game:GetService("CoreGui")
+local RunService  = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+local Mouse       = LocalPlayer:GetMouse()
+local Camera      = workspace.CurrentCamera
+
+-- ─────────────────────────────────────────────────────────────
+-- Tiện ích: lấy / tạo platform ẩn dưới chân
+-- ─────────────────────────────────────────────────────────────
+local function GetOrCreatePlatform()
+    local p = workspace:FindFirstChild("XCrazyPlatformFix")
+    if not p then
+        p = Instance.new("Part")
+        p.Name          = "XCrazyPlatformFix"
+        p.Size          = Vector3.new(10, 1, 10)
+        p.Transparency  = 1
+        p.Anchored      = true
+        p.CanCollide    = false   -- platform KHÔNG va chạm; chỉ để Humanoid nghĩ nó đứng
+        p.Parent        = workspace
+    end
+    return p
+end
+
+-- ─────────────────────────────────────────────────────────────
+local function CreateScreenButtonFix()
+    local ok, _ = pcall(function() return CoreGui.Name end)
+    local guiParent = ok and CoreGui or LocalPlayer:WaitForChild("PlayerGui")
+
+    if guiParent:FindFirstChild("XCrazyClickTPFix") then
+        guiParent.XCrazyClickTPFix:Destroy()
+    end
+
+    -- ── GUI ──────────────────────────────────────────────────
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name   = "XCrazyClickTPFix"
+    ScreenGui.Parent = guiParent
+
+    local Frame = Instance.new("Frame")
+    Frame.Size              = UDim2.new(0, 180, 0, 45)
+    Frame.Position          = UDim2.new(0.5, -90, 0.1, 0)
+    Frame.BackgroundColor3  = Color3.fromRGB(15, 15, 15)
+    Frame.Active            = true
+    Frame.Draggable         = true
+    Frame.Parent            = ScreenGui
+
+    local UICorner = Instance.new("UICorner")
+    UICorner.CornerRadius = UDim.new(0, 8)
+    UICorner.Parent       = Frame
+
+    local UIStroke = Instance.new("UIStroke")
+    UIStroke.Color     = Color3.fromRGB(0, 170, 255)
+    UIStroke.Thickness = 2
+    UIStroke.Parent    = Frame
+
+    local ToggleBtn = Instance.new("TextButton")
+    ToggleBtn.Size               = UDim2.new(1, 0, 1, 0)
+    ToggleBtn.BackgroundTransparency = 1
+    ToggleBtn.Text               = "FIX CAM TP: TẮT"
+    ToggleBtn.Font               = Enum.Font.GothamBold
+    ToggleBtn.TextSize           = 14
+    ToggleBtn.TextColor3         = Color3.fromRGB(255, 100, 100)
+    ToggleBtn.Parent             = Frame
+
+    -- ── Trạng thái ───────────────────────────────────────────
+    local isTpEnabled      = false
+    local isTweening       = false
+    local NoclipConnection = nil
+
+    -- ── Toggle bật/tắt ───────────────────────────────────────
+    ToggleBtn.MouseButton1Click:Connect(function()
+        isTpEnabled = not isTpEnabled
+        if isTpEnabled then
+            ToggleBtn.Text       = "FIX CAM TP: BẬT"
+            ToggleBtn.TextColor3 = Color3.fromRGB(0, 170, 255)
+        else
+            ToggleBtn.Text       = "FIX CAM TP: TẮT"
+            ToggleBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+            if NoclipConnection then
+                NoclipConnection:Disconnect()
+                NoclipConnection = nil
+            end
+        end
+    end)
+
+    -- ── Click để TP ──────────────────────────────────────────
+    Mouse.Button1Down:Connect(function()
+        if not isTpEnabled or isTweening then return end
+
+        local Character = LocalPlayer.Character
+        if not Character then return end
+
+        local HRP      = Character:FindFirstChild("HumanoidRootPart")
+        local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+        if not HRP or not Humanoid then return end
+
+        isTweening = true
+
+        -- ── 1. NOCLIP ────────────────────────────────────────
+        if NoclipConnection then NoclipConnection:Disconnect() end
+        NoclipConnection = RunService.Stepped:Connect(function()
+            for _, v in pairs(Character:GetDescendants()) do
+                if v:IsA("BasePart") then
+                    v.CanCollide = false
+                end
+            end
+        end)
+
+        -- ── 2. KHÓA TRẠNG THÁI HUMANOID ─────────────────────
+        --    Tắt Freefall + Jumping → Humanoid không kéo cam xuống
+        Humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall,  false)
+        Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping,   false)
+        Humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+
+        -- ── 3. KHÓA CAMERA VÀO CHẾ ĐỘ SCRIPTABLE ────────────
+        local prevCamType = Camera.CameraType
+        Camera.CameraType = Enum.CameraType.Scriptable
+
+        --    Ghi nhớ offset camera so với HRP (góc nhìn + khoảng cách)
+        local camRelative = HRP.CFrame:ToObjectSpace(Camera.CFrame)
+
+        -- ── 4. PLATFORM ẨN DƯỚI CHÂN ─────────────────────────
+        local platform = GetOrCreatePlatform()
+        platform.CFrame = HRP.CFrame * CFrame.new(0, -3.5, 0)
+
+        -- ── 5. TWEEN HRP ─────────────────────────────────────
+        local targetPos   = Mouse.Hit.Position
+        local targetCF    = CFrame.new(targetPos + Vector3.new(0, 3, 0))
+        local distance    = (HRP.Position - targetPos).Magnitude
+        local travelTime  = math.clamp(distance / 300, 0.05, 10)
+
+        local tween = TweenService:Create(
+            HRP,
+            TweenInfo.new(travelTime, Enum.EasingStyle.Linear),
+            { CFrame = targetCF }
+        )
+        tween:Play()
+
+        -- ── 6. THEO DÕI CAM + PLATFORM TRONG QUÁ TRÌNH BAY ──
+        local floatLoop = RunService.RenderStepped:Connect(function()
+            if not (HRP and HRP.Parent) then return end
+
+            -- Camera bám theo HRP với cùng offset ban đầu → không rớt
+            Camera.CFrame = HRP.CFrame * camRelative
+
+            -- Platform luôn nằm dưới chân
+            platform.CFrame = HRP.CFrame * CFrame.new(0, -3.5, 0)
+        end)
+
+        -- ── 7. DỌN DẸP SAU KHI TWEEN XONG ───────────────────
+        tween.Completed:Wait()
+
+        floatLoop:Disconnect()
+
+        if NoclipConnection then
+            NoclipConnection:Disconnect()
+            NoclipConnection = nil
+        end
+
+        -- Khôi phục Humanoid
+        Humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall,  true)
+        Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping,   true)
+        Humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+
+        -- Trả camera về chế độ cũ → game tự điều khiển lại
+        Camera.CameraType = prevCamType
+
+        isTweening = false
+    end)
+end
+
+CreateScreenButtonFix()
