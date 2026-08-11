@@ -1,0 +1,211 @@
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+
+local GUI_NAME = "XCrazyClick"
+local SPEED = 300
+
+local GUI_SIZE = UDim2.new(0, 240, 0, 55)
+local GUI_POSITION = UDim2.new(0.5, -120, 0.12, 0)
+
+pcall(function()
+    local old = CoreGui:FindFirstChild(GUI_NAME)
+    if old then
+        old:Destroy()
+    end
+end)
+
+pcall(function()
+    local old = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild(GUI_NAME)
+    if old then
+        old:Destroy()
+    end
+end)
+
+local guiParent = CoreGui
+
+if not pcall(function()
+    CoreGui:GetChildren()
+end) then
+    guiParent = LocalPlayer:WaitForChild("PlayerGui")
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = GUI_NAME
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = guiParent
+
+local Frame = Instance.new("Frame")
+Frame.Name = "Main"
+Frame.Size = GUI_SIZE
+Frame.Position = GUI_POSITION
+Frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+Frame.BorderSizePixel = 0
+Frame.Active = true
+Frame.Draggable = true
+Frame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = Frame
+
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Color = Color3.fromRGB(0, 170, 255)
+UIStroke.Thickness = 2
+UIStroke.Parent = Frame
+
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Name = "Toggle"
+ToggleBtn.Size = UDim2.new(1, 0, 1, 0)
+ToggleBtn.BackgroundTransparency = 1
+ToggleBtn.Text = "FIX CAM TP: TẮT"
+ToggleBtn.Font = Enum.Font.GothamBold
+ToggleBtn.TextSize = 16
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+ToggleBtn.AutoButtonColor = true
+ToggleBtn.Parent = Frame
+
+local Enabled = false
+local Moving = false
+
+local MoveConnection
+local NoclipConnection
+
+local function GetCharacter()
+    local Character = LocalPlayer.Character
+
+    if not Character then
+        return
+    end
+
+    local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+    local HRP = Character:FindFirstChild("HumanoidRootPart")
+
+    if not Humanoid or not HRP then
+        return
+    end
+
+    return Character, Humanoid, HRP
+end
+
+local function StopMove()
+    if MoveConnection then
+        MoveConnection:Disconnect()
+        MoveConnection = nil
+    end
+
+    if NoclipConnection then
+        NoclipConnection:Disconnect()
+        NoclipConnection = nil
+    end
+
+    Moving = false
+end
+
+ToggleBtn.MouseButton1Click:Connect(function()
+    Enabled = not Enabled
+
+    if Enabled then
+        ToggleBtn.Text = "FIX CAM TP: BẬT"
+        ToggleBtn.TextColor3 = Color3.fromRGB(0, 170, 255)
+    else
+        ToggleBtn.Text = "FIX CAM TP: TẮT"
+        ToggleBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+        StopMove()
+    end
+end)
+
+Mouse.Button1Down:Connect(function()
+    if not Enabled or Moving then
+        return
+    end
+
+    local Character, Humanoid, HRP = GetCharacter()
+
+    if not Character then
+        return
+    end
+
+    local Camera = workspace.CurrentCamera
+
+    local targetPosition = Mouse.Hit.Position + Vector3.new(0, 3, 0)
+    local startPosition = HRP.Position
+
+    local rotation = HRP.CFrame - HRP.Position
+
+    local startCFrame = CFrame.new(startPosition) * rotation
+    local targetCFrame = CFrame.new(targetPosition) * rotation
+
+    local distance = (startPosition - targetPosition).Magnitude
+    local duration = math.max(distance / SPEED, 0.08)
+
+    Moving = true
+
+    local oldCameraType = Camera.CameraType
+    local oldCameraSubject = Camera.CameraSubject
+
+    Camera.CameraType = Enum.CameraType.Custom
+    Camera.CameraSubject = HRP
+
+    local oldAutoRotate = Humanoid.AutoRotate
+    Humanoid.AutoRotate = false
+
+    NoclipConnection = RunService.Stepped:Connect(function()
+        if not Character.Parent then
+            return
+        end
+
+        for _, part in ipairs(Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end)
+
+    HRP.AssemblyLinearVelocity = Vector3.zero
+    HRP.AssemblyAngularVelocity = Vector3.zero
+
+    local startTime = os.clock()
+
+    MoveConnection = RunService.RenderStepped:Connect(function()
+        if not Moving then
+            return
+        end
+
+        if not Character.Parent or not HRP.Parent or Humanoid.Health <= 0 then
+            StopMove()
+            return
+        end
+
+        local elapsed = os.clock() - startTime
+        local alpha = math.clamp(elapsed / duration, 0, 1)
+
+        HRP.CFrame = startCFrame:Lerp(targetCFrame, alpha)
+
+        HRP.AssemblyLinearVelocity = Vector3.zero
+        HRP.AssemblyAngularVelocity = Vector3.zero
+
+        if Camera.CameraSubject ~= HRP then
+            Camera.CameraSubject = HRP
+        end
+
+        if alpha >= 1 then
+            HRP.CFrame = targetCFrame
+            HRP.AssemblyLinearVelocity = Vector3.zero
+            HRP.AssemblyAngularVelocity = Vector3.zero
+
+            StopMove()
+
+            Humanoid.AutoRotate = oldAutoRotate
+            Camera.CameraType = oldCameraType
+            Camera.CameraSubject = oldCameraSubject
+        end
+    end)
+end)
+
+LocalPlayer.CharacterAdded:Connect(function()
+    StopMove()
+end)
